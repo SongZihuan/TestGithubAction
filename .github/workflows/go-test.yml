@@ -50,7 +50,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: huan-go-test
-          path: "$GITHUB_WORKSPACE/huan-go-test"
+          path: "${{ GITHUB_WORKSPACE }}/huan-go-test"
 
   run:
     runs-on: ubuntu-latest
@@ -61,7 +61,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: huan-go-test
-          path: "$GITHUB_WORKSPACE/huan-go-test"
+          path: "${{ GITHUB_WORKSPACE }}/huan-go-test"
 
       - name: List Work Directory
         run: ls -l
