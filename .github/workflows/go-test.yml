@@ -28,6 +28,10 @@ jobs:
     needs: test
 
     steps:
+      - name: Echo Github Work Space
+        run: |
+         echo "Github Work Space: $GITHUB_WORKSPACE"
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -44,6 +48,7 @@ jobs:
         with:
           name: huan-go-test
           path: "$GITHUB_WORKSPACE/huan-go-test"
+
   run:
     runs-on: ubuntu-latest
     needs: build
