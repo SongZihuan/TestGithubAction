@@ -61,7 +61,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: huan-go-test
-          path: "${{ github.workspace }}/huan-go-test"
+          path: "${{ github.workspace }}"
 
       - name: List Work Directory
         run: ls -l
