@@ -99,3 +99,16 @@ jobs:
 
       - name: Print all environment variables
         run: env
+
+  hello-test:
+    runs-on: ubuntu-latest
+    environment: test
+
+    steps:
+      - name: Say Hello
+        run: echo "Hello, world!"
+
+      - name: Say Variable
+        run: |
+          echo "env.TESTVAARIABLE ${{ vars.TEST_VAR }}"
+
