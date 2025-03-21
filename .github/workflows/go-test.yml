@@ -87,16 +87,15 @@ jobs:
 
       - name: Say Variable
         run: |
-          echo "env.TESTVAARIABLE ${{ env.TESTVARIABLE }}"
-
-      - name: Say Variable on Shell
-        run: |
-          echo "env.TESTVAARIABLE $TESTVARIABLE"
+          echo "env.TESTVAARIABLE ${{ vars.TESTVARIABLE }}"
 
       - name: Say Test ENV
         run: |
-          echo "env.TESTENV ${{ env.TESTENV }}"
+          echo "TESTENV: ${{ env.TESTENV }}"
 
       - name: Say Test EN on Shell
         run: |
-          echo "env.TESTENV TESTENV"
+          echo "TESTENV: $TESTENV"
+
+      - name: Print all environment variables
+        run: env
