@@ -6,6 +6,8 @@ on:
       - main
   pull_request:
 
+env:
+  TESTENV: "Hello, I am test env"
 
 jobs:
   test:
@@ -78,3 +80,23 @@ jobs:
     steps:
       - name: Say Hello
         run: echo "Hello, world!"
+
+      - name: Say Secret
+        run: |
+          echo "secrets.TESTSECRET: ${{ secrets.TESTSECRET }}"
+
+      - name: Say Variable
+        run: |
+          echo "env.TESTVAARIABLE ${{ env.TESTVARIABLE }}"
+
+      - name: Say Variable on Shell
+        run: |
+          echo "env.TESTVAARIABLE $TESTVARIABLE"
+
+      - name: Say Test ENV
+        run: |
+          echo "env.TESTENV ${{ env.TESTENV }}"
+
+      - name: Say Test EN on Shell
+        run: |
+          echo "env.TESTENV TESTENV"
