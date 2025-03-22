@@ -160,7 +160,7 @@ jobs:
         id: create_release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "${{ github.workspace }}/${{ env.OUTPUT_REHL_NAME }},${{ github.workspace }}/${{ env.OUTPUT_REHL_NAME }}"
+          artifacts: "${{ github.workspace }}/${{ env.OUTPUT_UBUNTU_NAME }},${{ github.workspace }}/${{ env.OUTPUT_REHL_NAME }}"
           artifactErrorsFailBuild: true
           allowUpdates: false
           body: |
