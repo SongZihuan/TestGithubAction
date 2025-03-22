@@ -28,7 +28,7 @@ jobs:
   test-centeos:
     runs-on: ubuntu-latest
     container:
-      image: centos:latest
+      image: centos:centos7
 
     steps:
       - name: Checkout code
