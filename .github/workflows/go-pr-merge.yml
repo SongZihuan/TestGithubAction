@@ -211,6 +211,8 @@ jobs:
       ARCHITECTURE_DEFAULT: "amd64"
       COMPAT_DEFAULT: "9"
 
+      PACKAGE_NAME: ${{ env.BINARY_FILE_NAME }}
+
     steps:
       - name: Set up dependencies
         run: |
@@ -290,8 +292,6 @@ jobs:
 
       - name: Package into .deb
         id: before-package
-        env:
-          PACKAGE_NAME: ${{ env.BINARY_FILE_NAME }}
 
         run: |
           mkdir -p "${{ github.workspace }}/debian"
@@ -351,10 +351,12 @@ jobs:
           ls -al ${{ github.workspace }}/bin
 
       - name: Package deb
+        id: package
         run: |
           cat ${{ github.workspace }}/debian/rules
           echo "dh: $(which dh)"
           dpkg-buildpackage -us -uc
+          echo "Architecture=$(cat ${{ env.FILE_ARCHITECTURE }})" >> $GITHUB_OUTPUT
 
       - name: List Directory After Package
         run: ls -al ${{ github.workspace }}/../
@@ -362,6 +364,11 @@ jobs:
       - name: Upload dev artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.BINARY_FILE_NAME }}-debian
-          path: ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}_$(cat ${{ github.workspace }}/${{ env.FILE_ARCHITECTURE }}).deb
+          name: ${{ env.PACKAGE_NAME }}-package-dev
+          path: |
+            ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}.dsc
+            ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}_${{ steps.package.outputs.Architecture }}).deb
+            ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}_${{ steps.package.outputs.Architecture }}).buildinfo
+            ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}_${{ steps.package.outputs.Architecture }}).changes
           if-no-files-found: error
+          retention-days: 90
