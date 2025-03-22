@@ -7,9 +7,26 @@ package main
 import "testing"
 
 func TestAdd(t *testing.T) {
-	if Add(1, 1) != 2 {
-		t.Errorf("Running test %s error!", t.Name())
+	test1 := t.Run("1+1", func(t *testing.T) {
+		if Add(1, 1) != 2 {
+			t.Fatalf("Running test %s error!", t.Name())
+		}
+	})
+
+	test2 := t.Run("1+2", func(t *testing.T) {
+		if Add(1, 2) != 4 {
+			t.Fatalf("Running test %s error!", t.Name())
+		}
+	})
+
+	if !test1 || !test2 {
+		t.Fail()
 	}
 
-	t.Logf("Running test %s success!", t.Name())
+	if t.Failed() {
+		t.Logf("Run test %s failed.", t.Name())
+	} else {
+		t.Logf("Run test %s success.", t.Name())
+	}
+
 }
