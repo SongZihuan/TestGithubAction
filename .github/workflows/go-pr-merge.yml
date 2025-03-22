@@ -50,7 +50,7 @@ jobs:
           name: ${{ env.OUTPUT_UBUNTU_NAME }}
           path: "${{ github.workspace }}/${{ env.OUTPUT_UBUNTU_NAME }}"
 
-  build-rehl:
+  build-redhat:
     runs-on: ubuntu-latest
     container:
       image: redhat/ubi9

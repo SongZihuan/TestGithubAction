@@ -25,7 +25,7 @@ jobs:
       - name: Run go test
         run: go test github.com/SongZihuan/TestGithubAction
 
-  test-centeos:
+  test-redhat:
     runs-on: ubuntu-latest
     container:
       image: redhat/ubi9
