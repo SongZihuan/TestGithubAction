@@ -7,7 +7,7 @@ on:
 
 env:
   OUTPUT_UBUNTU_NAME: huan-go-test-ubuntu
-  OUTPUT_CENTOS_NAME: huan-go-test-centos
+  OUTPUT_REHL_NAME: huan-go-test-rehl
   VERSION_FILE: VERSION
 
 jobs:
@@ -50,10 +50,10 @@ jobs:
           name: ${{ env.OUTPUT_UBUNTU_NAME }}
           path: "${{ github.workspace }}/${{ env.OUTPUT_UBUNTU_NAME }}"
 
-  build-centos:
+  build-rehl:
     runs-on: ubuntu-latest
     container:
-      image: centos:centos7
+      image: redhat/ubi9
     needs: merge
 
     steps:
@@ -70,7 +70,7 @@ jobs:
           go-version: '1.23.4' # 根据需要指定Go版本
 
       - name: Build go
-        run: go build -o "${{ github.workspace }}/${{ env.OUTPUT_CENTOS_NAME }}" -trimpath -ldflags="-s -w" github.com/SongZihuan/TestGithubAction
+        run: go build -o "${{ github.workspace }}/${{ env.OUTPUT_REHL_NAME }}" -trimpath -ldflags="-s -w" github.com/SongZihuan/TestGithubAction
 
       - name: List build directory
         run: ls -l "${{ github.workspace }}"
@@ -79,13 +79,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.OUTPUT_UBUNTU_NAME }}
-          path: "${{ github.workspace }}/${{ env.OUTPUT_CENTOS_NAME }}"
+          path: "${{ github.workspace }}/${{ env.OUTPUT_REHL_NAME }}"
 
   create_release:
     runs-on: ubuntu-latest
     needs:
       - build-ubuntu
-      - build-centos
+      - build-rehl
 
     permissions: write-all
 
@@ -132,10 +132,10 @@ jobs:
           name: ${{ env.OUTPUT_UBUNTU_NAME }}
           path: "${{ github.workspace }}"
 
-      - name: Download centos artifact
+      - name: Download redhat artifact
         uses: actions/download-artifact@v4
         with:
-          name: ${{ env.OUTPUT_CENTOS_NAME }}
+          name: ${{ env.OUTPUT_REHL_NAME }}
           path: "${{ github.workspace }}"
 
       - name: List directory
@@ -145,7 +145,7 @@ jobs:
         id: create_release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "${{ github.workspace }}/${{ env.OUTPUT_CENTOS_NAME }},${{ github.workspace }}/${{ env.OUTPUT_CENTOS_NAME }}"
+          artifacts: "${{ github.workspace }}/${{ env.OUTPUT_REHL_NAME }},${{ github.workspace }}/${{ env.OUTPUT_REHL_NAME }}"
           artifactErrorsFailBuild: true
           allowUpdates: false
           body: |
