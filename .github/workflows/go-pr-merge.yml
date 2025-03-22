@@ -19,6 +19,12 @@ jobs:
       - name: Pull Requests Merge
         run: echo "pull requests merge"
 
+      - name: Temp steps
+        run: |
+          ls -l "${{ github.workspace }}" || 0
+          ls -l /__w  || 0
+          ls -l /__w/TestGithubAction/TestGithubAction || 0
+
   build-ubuntu:
     runs-on: ubuntu-latest
     container:
@@ -26,11 +32,6 @@ jobs:
     needs: merge
 
     steps:
-      - name: Init Ubuntu for Github Action
-        run: |
-          ln -s /home/runner/work /__w
-          ln -s /home/runner/work/_temp /__t
-
       - name: Echo Github Work Space
         run: |
           echo "Github Work Space: ${{ github.workspace }}"
