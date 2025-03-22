@@ -13,6 +13,9 @@ on:
 
 
 env:
+  PACKAGE_NAME: huan-go-test
+  PACKAGE_FILE_NAME_DEB: huan-go-test-package-deb
+  PACKAGE_FILE_NAME_RPM: huan-go-test-package-rpm
   BINARY_FILE_NAME: huan-go-test
   OUTPUT_UBUNTU_NAME: huan-go-test-ubuntu
   OUTPUT_REHL_NAME: huan-go-test-rehl
@@ -211,8 +214,6 @@ jobs:
       ARCHITECTURE_DEFAULT: "amd64"
       COMPAT_DEFAULT: "9"
 
-      PACKAGE_NAME: ${{ env.BINARY_FILE_NAME }}
-
     steps:
       - name: Set up dependencies
         run: |
@@ -364,7 +365,7 @@ jobs:
       - name: Upload dev artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.PACKAGE_NAME }}-package-dev
+          name: ${{ env.PACKAGE_FILE_NAME_DEB }}
           path: |
             ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}.dsc
             ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}_${{ steps.package.outputs.Architecture }}).deb
