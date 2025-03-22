@@ -312,9 +312,12 @@ override_dh_auto_test:
           ls -al ${{ github.workspace }}/bin
 
           dpkg-buildpackage -us -uc
-          
-          ls -al
-          mv ${{ github.workspace }}/*.deb ${{ github.workspace }}/${{ env.BINARY_FILE_NAME }}.deb
+
+      - name: List Directory
+        run: ls -al ${{ github.workspace }}
+
+      - name: Rename deb
+        run: mv ${{ github.workspace }}/*.deb ${{ github.workspace }}/${{ env.BINARY_FILE_NAME }}.deb
 
       - name: Upload dev artifact
         uses: actions/upload-artifact@v4
