@@ -210,18 +210,6 @@ jobs:
       BIN_PATH_DEFAULT: "usr/local/bin"
       ARCHITECTURE_DEFAULT: "amd64"
       COMPAT_DEFAULT: "9"
-      RULES_DEFAULT: '#!/usr/bin/make -f
-
-%:
-	dh $@
-
-override_dh_auto_build:
-	# skip
-
-override_dh_auto_test:
-	# skip
-
-'
 
     steps:
       - name: Set up dependencies
@@ -278,7 +266,17 @@ override_dh_auto_test:
           fi
           
           if [ ! -f "${{ github.workspace }}/${{ env.FILE_RULES }}" ]; then
-            echo "${{ env.RULES_DEFAULT }}" > ${{ github.workspace }}/${{ env.FILE_RULES }}
+            echo '#!/usr/bin/make -f' > ${{ github.workspace }}/${{ env.FILE_RULES }}
+            echo '' >> ${{ github.workspace }}/${{ env.FILE_RULES }}
+            echo '%:' 》> ${{ github.workspace }}/${{ env.FILE_RULES }}
+            echo '    dh @a' >> ${{ github.workspace }}/${{ env.FILE_RULES }}
+            echo '' >> ${{ github.workspace }}/${{ env.FILE_RULES }}
+            echo 'override_dh_auto_build' >> ${{ github.workspace }}/${{ env.FILE_RULES }}
+            echo '    # skip' >> ${{ github.workspace }}/${{ env.FILE_RULES }}
+            echo '' >> ${{ github.workspace }}/${{ env.FILE_RULES }}
+            echo 'override_dh_auto_test' >> ${{ github.workspace }}/${{ env.FILE_RULES }}
+            echo '    # skip' >> ${{ github.workspace }}/${{ env.FILE_RULES }}
+            echo '' >> ${{ github.workspace }}/${{ env.FILE_RULES }}
           fi
           
           if [ ! -f "${{ github.workspace }}/${{ env.FILE_COPYRIGHT }}" ]; then
