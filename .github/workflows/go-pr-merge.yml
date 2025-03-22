@@ -10,8 +10,8 @@ on:
 
 env:
   BINARY_FILE_NAME: huan-go-test
-  OUTPUT_UBUNTU_NAME: ${{ env.BINARY_FILE_NAME }}-ubuntu
-  OUTPUT_REHL_NAME: ${{ env.BINARY_FILE_NAME }}-rehl
+  OUTPUT_UBUNTU_NAME: huan-go-test-ubuntu
+  OUTPUT_REHL_NAME: huan-go-test-rehl
   VERSION_FILE: VERSION
 
 jobs:
