@@ -211,6 +211,7 @@ jobs:
       ARCHITECTURE_DEFAULT: "amd64"
       COMPAT_DEFAULT: "9"
       RULES_DEFAULT: '#!/usr/bin/make -f
+
 %:
 	dh $@
 
@@ -221,6 +222,7 @@ override_dh_auto_test:
 	# skip
 
 '
+
     steps:
       - name: Set up dependencies
         run: |
