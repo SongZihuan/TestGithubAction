@@ -281,7 +281,7 @@ override_dh_auto_test:
           
           TAG=${{ needs.create_release.outputs.tag }}
           VERSION="${TAG#v}"
-          
+          echo "Version ${VERSION}"
           
           echo "PACKAGE: ${{ env.PACKAGE_NAME }}" > ${{ github.workspace }}/debian/control
           echo "Version: ${VERSION}" > ${{ github.workspace }}/debian/control
@@ -296,10 +296,7 @@ override_dh_auto_test:
           cp ${{ github.workspace }}/${{ env.FILE_COMPAT }} ${{ github.workspace }}/debian/compat
           cp ${{ github.workspace }}/${{ env.FILE_COPYRIGHT }} ${{ github.workspace }}/debian/copyright
           cp ${{ github.workspace }}/${{ env.FILE_RULES }} ${{ github.workspace }}/debian/rules
-#          if [ ! -f "${{ github.workspace }}/debian/changelog" ]; then
-#            DEBEMAIL="$(git show -s --format='%ae' $(git rev-list --max-parents=0 HEAD))" gbp dch --new-version="1.0.0-1" --release --since="v1.0.0" --ignore-branch
-#          fi
-        
+
           sudo chmod a+x "${{ github.workspace }}/${{ env.OUTPUT_UBUNTU_NAME }}"
           mv "${{ github.workspace }}/${{ env.OUTPUT_UBUNTU_NAME }}" "${{ github.workspace }}/bin/${{ env.BINARY_FILE_NAME }}"
           
