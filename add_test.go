@@ -14,7 +14,7 @@ func TestAdd(t *testing.T) {
 	})
 
 	test2 := t.Run("1+2", func(t *testing.T) {
-		if Add(1, 2) != 4 {
+		if Add(1, 2) != 3 {
 			t.Fatalf("Running test %s error!", t.Name())
 		}
 	})

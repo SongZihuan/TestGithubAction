@@ -1,13 +1,7 @@
 name: Go Test
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
-
-env:
-  TESTENV: "Hello, I am test env"
 
 jobs:
   test:
@@ -73,42 +67,3 @@ jobs:
 
       - name: Run huan-go-test
         run: "${{ github.workspace }}/huan-go-test"
-
-  hello:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Say Hello
-        run: echo "Hello, world!"
-
-      - name: Say Secret
-        run: |
-          echo "secrets.TESTSECRET: ${{ secrets.TESTSECRET }}"
-
-      - name: Say Variable
-        run: |
-          echo "env.TESTVAARIABLE ${{ vars.TESTVARIABLE }}"
-
-      - name: Say Test ENV
-        run: |
-          echo "TESTENV: ${{ env.TESTENV }}"
-
-      - name: Say Test EN on Shell
-        run: |
-          echo "TESTENV: $TESTENV"
-
-      - name: Print all environment variables
-        run: env
-
-  hello-test:
-    runs-on: ubuntu-latest
-    environment: test
-
-    steps:
-      - name: Say Hello
-        run: echo "Hello, world!"
-
-      - name: Say Variable
-        run: |
-          echo "env.TESTVAARIABLE ${{ vars.TEST_VAR }}"
-
