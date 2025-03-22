@@ -212,7 +212,7 @@ jobs:
       COMPAT_DEFAULT: "9"
       RULES_DEFAULT: '#!/usr/bin/make -f
 %:
-	dh $@
+	/usr/bin/dh $@
 
 override_dh_auto_build:
 	# skip
