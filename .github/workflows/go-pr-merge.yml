@@ -348,6 +348,7 @@ override_dh_auto_test:
 
       - name: Package deb
         run: |
+          cat ${{ github.workspace }}/debian/rules
           echo "dh: $(which dh)"
           dpkg-buildpackage -us -uc
 
