@@ -286,7 +286,7 @@ override_dh_auto_test:
           if [ -f "${{ github.workspace }}/${{ env.FILE_DEPENDS }}" ]; then
             echo "Depends: $(cat ${{ github.workspace }}/${{ env.FILE_DEPENDS }})" >> ${{ github.workspace }}/debian/control
           fi        
-          echo "Maintainer: $(cat${{ github.workspace }}/ ${{ env.FILE_MAINTAINER }})" >> ${{ github.workspace }}/debian/control
+          echo "Maintainer: $(cat${{ github.workspace }}/${{ env.FILE_MAINTAINER }})" >> ${{ github.workspace }}/debian/control
           echo "Description: $(cat ${{ github.workspace }}/${{ env.FILE_DESCRIBE }})" >> ${{ github.workspace }}/debian/control
           cp ${{ github.workspace }}/${{ env.FILE_COMPAT }} ${{ github.workspace }}/debian/compat
           cp ${{ github.workspace }}/${{ env.FILE_COPYRIGHT }} ${{ github.workspace }}/debian/copyright
@@ -297,7 +297,7 @@ override_dh_auto_test:
           
           echo "bin/$(cat ${{ env.BINARY_FILE_NAME }}) $(cat ${{ env.FILE_BIN_PATH }})" > ${{ github.workspace }}/debian/${{ env.PACKAGE_NAME }}.install
           
-          gdb dch --new-version=$VERSION --release --since=${{ needs.create_release.outputs.tag }} --ignore-branch
+          gbp dch --new-version=$VERSION --release --since=${{ needs.create_release.outputs.tag }} --ignore-branch
           
           ls -al ${{ github.workspace }}/debian
           ls -al ${{ github.workspace }}/bin
