@@ -1,0 +1,158 @@
+name: Publish Go Code
+
+on:
+  pull_request:
+    types:
+      - closed
+
+env:
+  OUTPUT_UBUNTU_NAME: huan-go-test-ubuntu
+  OUTPUT_CENTOS_NAME: huan-go-test-centos
+  VERSION_FILE: VERSION
+
+jobs:
+  merge:
+    if: github.event.pull_request.merged == true # 仅当PR被合并时触发
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Pull Requests Merge
+        run: echo "pull requests merge"
+
+  build-ubuntu:
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:latest
+    needs: merge
+
+    steps:
+      - name: Echo Github Work Space
+        run: |
+          echo "Github Work Space: ${{ github.workspace }}"
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.4' # 根据需要指定Go版本
+
+      - name: Build go
+        run: go build -o "${{ github.workspace }}/${{ env.OUTPUT_UBUNTU_NAME }}" -trimpath -ldflags="-s -w" github.com/SongZihuan/TestGithubAction
+
+      - name: List build directory
+        run: ls -l "${{ github.workspace }}"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.OUTPUT_UBUNTU_NAME }}
+          path: "${{ github.workspace }}/${{ env.OUTPUT_UBUNTU_NAME }}"
+
+  build-centos:
+    runs-on: ubuntu-latest
+    container:
+      image: centos:latest
+    needs: merge
+
+    steps:
+      - name: Echo Github Work Space
+        run: |
+          echo "Github Work Space: ${{ github.workspace }}"
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.4' # 根据需要指定Go版本
+
+      - name: Build go
+        run: go build -o "${{ github.workspace }}/${{ env.OUTPUT_CENTOS_NAME }}" -trimpath -ldflags="-s -w" github.com/SongZihuan/TestGithubAction
+
+      - name: List build directory
+        run: ls -l "${{ github.workspace }}"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.OUTPUT_UBUNTU_NAME }}
+          path: "${{ github.workspace }}/${{ env.OUTPUT_CENTOS_NAME }}"
+
+  create_release:
+    runs-on: ubuntu-latest
+    needs:
+      - build-ubuntu
+      - build-centos
+
+    permissions: write-all
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 获取所有历史记录以便能够创建标签
+
+      - name: Fetch tags
+        run: git fetch --tags
+
+      - name: Create Tag
+        id: tag_version
+        run: |
+          if [ -f ${{ github.workspace }}/${{ env.VERSION_FILE }} ]; then
+            echo "VERSION file found."
+            if git tag --list | grep -q "^${VERSION}$"; then
+              if git describe --tags; then
+                echo "::set-output name=tag::$(git describe --tags --abbrev=0 | awk -F. '{print $1"."$2+1".0"}')"
+              else
+                echo "::set-output name=tag::v1.0.0"
+              fi
+            else
+              echo "::set-output name=tag::$VERSION"
+            fi
+          else
+            if git describe --tags; then
+                echo "::set-output name=tag::$(git describe --tags --abbrev=0 | awk -F. '{print $1"."$2+1".0"}')"
+              else
+                echo "::set-output name=tag::v1.0.0"
+            fi
+          fi
+
+      - name: Create Git tag
+        run: git tag "${{ steps.tag_version.outputs.tag }}"
+
+      - name: Push tag to GitHub
+        run: git push origin "${{ steps.tag_version.outputs.tag }}"
+
+      - name: Download ubuntu artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.OUTPUT_UBUNTU_NAME }}
+          path: "${{ github.workspace }}"
+
+      - name: Download centos artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.OUTPUT_CENTOS_NAME }}
+          path: "${{ github.workspace }}"
+
+      - name: List directory
+        run: ls -l ${{ github.workspace }}
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "${{ github.workspace }}/${{ env.OUTPUT_CENTOS_NAME }},${{ github.workspace }}/${{ env.OUTPUT_CENTOS_NAME }}"
+          artifactErrorsFailBuild: true
+          allowUpdates: false
+          body: |
+            新版本 ${{ steps.tag_version.outputs.tag }} 发布啦！
+            快来体验吧！
+          generateReleaseNotes: true
+          makeLatest: "legacy"
+
+      - name: Output the URL of the new release
+        run: echo "The release is available at ${{ steps.create_release.outputs.html_url }}"
