@@ -128,18 +128,18 @@ jobs:
             echo "VERSION file found."
             if git tag --list | grep -q "^${VERSION}$"; then
               if git describe --tags; then
-                echo "{tag}={$(git describe --tags --abbrev=0 | awk -F. '{print $1"."$2+1".0"}')}" >> $GITHUB_OUTPUT
+                echo "tag=$(git describe --tags --abbrev=0 | awk -F. '{print $1"."$2+1".0"}')" >> $GITHUB_OUTPUT
               else
-                echo "{tag}={v1.0.0}" >> $GITHUB_OUTPUT
+                echo "tag=v1.0.0" >> $GITHUB_OUTPUT
               fi
             else
-              echo "{tag}={$VERSION}" >> $GITHUB_OUTPUT
+              echo "tag=$VERSION" >> $GITHUB_OUTPUT
             fi
           else
             if git describe --tags; then
-                echo "{tag}={$(git describe --tags --abbrev=0 | awk -F. '{print $1"."$2+1".0"}')}" >> $GITHUB_OUTPUT
+                echo "tag=$(git describe --tags --abbrev=0 | awk -F. '{print $1"."$2+1".0"}')" >> $GITHUB_OUTPUT
               else
-                echo "{tag}={$VERSION}" >> $GITHUB_OUTPUT
+                echo "tag=$VERSION" >> $GITHUB_OUTPUT
             fi
           fi
 
