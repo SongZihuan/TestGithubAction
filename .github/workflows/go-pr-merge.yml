@@ -277,6 +277,10 @@ jobs:
             echo 'override_dh_auto_test:' >> ${{ github.workspace }}/${{ env.FILE_RULES }}
             echo -e '\t# skip' >> ${{ github.workspace }}/${{ env.FILE_RULES }}
             echo '' >> ${{ github.workspace }}/${{ env.FILE_RULES }}
+            echo '' >> ${{ github.workspace }}/${{ env.FILE_RULES }}
+            echo 'override_dh_usrlocal:' >> ${{ github.workspace }}/${{ env.FILE_RULES }}
+            echo -e '\t# skip' >> ${{ github.workspace }}/${{ env.FILE_RULES }}
+            echo '' >> ${{ github.workspace }}/${{ env.FILE_RULES }}
           fi
           
           if [ ! -f "${{ github.workspace }}/${{ env.FILE_COPYRIGHT }}" ]; then
