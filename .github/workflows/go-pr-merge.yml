@@ -26,6 +26,9 @@ jobs:
     needs: merge
 
     steps:
+      - name: Init Ubuntu for Github Action
+        run: ls -l /
+
       - name: Echo Github Work Space
         run: |
           echo "Github Work Space: ${{ github.workspace }}"
@@ -57,6 +60,9 @@ jobs:
     needs: merge
 
     steps:
+      - name: Init Redhat UBI 9 for Github Action
+        run: ls -l /
+
       - name: Echo Github Work Space
         run: |
           echo "Github Work Space: ${{ github.workspace }}"
