@@ -5,10 +5,13 @@ on:
   pull_request:
     types:
       - closed
+    branches:
+      - main
 
 env:
-  OUTPUT_UBUNTU_NAME: huan-go-test-ubuntu
-  OUTPUT_REHL_NAME: huan-go-test-rehl
+  BINARY_FILE_NAME: huan-go-test
+  OUTPUT_UBUNTU_NAME: ${{ env.BINARY_FILE_NAME }}-ubuntu
+  OUTPUT_REHL_NAME: ${{ env.BINARY_FILE_NAME }}-rehl
   VERSION_FILE: VERSION
 
 jobs:
@@ -172,3 +175,141 @@ jobs:
 
       - name: Output the URL of the new release
         run: echo "The release is available at ${{ steps.create_release.outputs.html_url }}"
+    outputs:
+      tag: "${{ steps.tag_version.outputs.tag }}"
+      release: "${{ steps.create_release.outputs.html_url }}"
+
+  publish_deb:
+    runs-on: ubuntu-latest
+    needs:
+      - create_release
+
+    env:
+      FILE_SESSION: ".session"
+      FILE_PRIORITY: ".priority"
+      FILE_ARCHITECTURE: ".architecture"
+      FILE_DEPENDS: ".depends"
+      FILE_DESCRIBE: ".describe"
+      FILE_MAINTAINER: ".maintainer"
+      FILE_BIN_PATH: ".bin-path"
+      FILE_COMPAT: ".compat"
+      FILE_RULES: ".rules"
+      FILE_COPYRIGHT: ".copyright"
+
+      DESCRIBE_DEFAULT: "The author, like a wisp of cloud passing by, leaves not a single word, yet bestows boundless room for imagination upon the world."
+      BIN_PATH_DEFAULT: "usr/local/bin"
+      ARCHITECTURE_DEFAULT: "amd64"
+      COMPAT_DEFAULT: "9"
+      RULES_DEFAULT: '#!/usr/bin/make -f
+%:
+	dh $@
+
+override_dh_auto_build:
+	# skip
+
+override_dh_auto_test:
+	# skip
+
+'
+
+    steps:
+      - name: Set up dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y build-essential dpkg-dev devscripts debhelper git-buildpackage
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 获取所有历史记录以便能够创建标签
+
+      - name: Download ubuntu artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.OUTPUT_UBUNTU_NAME }}
+          path: ${{ github.workspace }}
+
+      - name: Package Default File Check
+        run: |
+          if [ ! -f "${{ github.workspace }}/${{ env.FILE_SESSION }}" ]; then
+            echo "misc" > ${{ github.workspace }}/${{ env.FILE_SESSION }}
+          fi
+
+          if [ ! -f "${{ github.workspace }}/${{ env.FILE_PRIORITY }}" ]; then
+            echo "extra" > ${{ github.workspace }}/${{ env.FILE_PRIORITY }}
+          fi
+          
+          if [ ! -f "${{ github.workspace }}/${{ env.FILE_ARCHITECTURE }}" ]; then
+            echo "${{ env.ARCHITECTURE_DEFAULT }}" > ${{ github.workspace }}/${{ env.FILE_ARCHITECTURE }}
+          fi
+          
+          if [ ! -f "${{ github.workspace }}/${{ env.FILE_MAINTAINER }}" ]; then
+            git show -s --format='%an<%ae>' $(git rev-list --max-parents=0 HEAD) > ${{ github.workspace }}/${{ env.FILE_MAINTAINER }}
+          fi
+          
+          if [ ! -f "${{ github.workspace }}/${{ env.FILE_DESCRIBE }}" ]; then
+            echo "${{ env.DESCRIBE_DEFAULT }}" > ${{ github.workspace }}/${{ env.FILE_DESCRIBE }}
+          fi
+          
+          if [ ! -f "${{ github.workspace }}/${{ env.FILE_BIN_PATH }}" ]; then
+            echo "${{ env.BIN_PATH_DEFAULT }}" > ${{ github.workspace }}/${{ env.FILE_BIN_PATH }}
+          fi
+          
+          if [ ! -f "${{ github.workspace }}/${{ env.FILE_COMPAT }}" ]; then
+            echo "${{ env.COMPAT_DEFAULT }}" > ${{ github.workspace }}/${{ env.FILE_COMPAT }}
+          fi
+          
+          if [ ! -f "${{ github.workspace }}/${{ env.FILE_RULES }}" ]; then
+            echo "${{ env.RULES_DEFAULT }}" > ${{ github.workspace }}/${{ env.FILE_RULES }}
+          fi
+          
+          if [ ! -f "${{ github.workspace }}/${{ env.FILE_COPYRIGHT }}" ]; then
+            echo "Error: ${{ env.FILE_COPYRIGHT }} not found!"
+            exit 1
+          fi
+
+      - name: Package into .deb
+        env:
+          PACKAGE_NAME: ${{ env.BINARY_FILE_NAME }}
+
+        run: |
+          mkdir -p "${{ github.workspace }}/debian"
+          mkdir -p "${{ github.workspace }}/bin"
+          
+          TAG=${{ needs.create_release.outputs.tag }}
+          VERSION="${TAG#v}"
+          
+          echo "PACKAGE: ${{ env.PACKAGE_NAME }}" > ${{ github.workspace }}/debian/control
+          echo "Version: ${VERSION}" > ${{ github.workspace }}/debian/control
+          echo "Session: $(cat ${{ github.workspace }}/${{ env.FILE_SESSION }})" >> ${{ github.workspace }}/debian/control
+          echo "Priority: $(cat ${{ github.workspace }}/${{ env.FILE_PRIORITY }})" >> ${{ github.workspace }}/debian/control
+          echo "Architecture: $(cat ${{ github.workspace }}/${{ env.FILE_ARCHITECTURE }})" >> ${{ github.workspace }}/debian/control
+          if [ -f "${{ github.workspace }}/${{ env.FILE_DEPENDS }}" ]; then
+            echo "Depends: $(cat ${{ github.workspace }}/${{ env.FILE_DEPENDS }})" >> ${{ github.workspace }}/debian/control
+          fi        
+          echo "Maintainer: $(cat${{ github.workspace }}/ ${{ env.FILE_MAINTAINER }})" >> ${{ github.workspace }}/debian/control
+          echo "Description: $(cat ${{ github.workspace }}/${{ env.FILE_DESCRIBE }})" >> ${{ github.workspace }}/debian/control
+          cp ${{ github.workspace }}/${{ env.FILE_COMPAT }} ${{ github.workspace }}/debian/compat
+          cp ${{ github.workspace }}/${{ env.FILE_COPYRIGHT }} ${{ github.workspace }}/debian/copyright
+          cp ${{ github.workspace }}/${{ env.FILE_RULES }} ${{ github.workspace }}/debian/rules
+        
+          sudo chmod a+x "${{ github.workspace }}/${{ env.OUTPUT_UBUNTU_NAME }}"
+          mv "${{ github.workspace }}/${{ env.OUTPUT_UBUNTU_NAME }}" "${{ github.workspace }}/bin/$(cat ${{ env.BINARY_FILE_NAME }})"
+          
+          echo "bin/$(cat ${{ env.BINARY_FILE_NAME }}) $(cat ${{ env.FILE_BIN_PATH }})" > ${{ github.workspace }}/debian/${{ env.PACKAGE_NAME }}.install
+          
+          gdb dch --new-version=$VERSION --release --since=${{ needs.create_release.outputs.tag }} --ignore-branch
+          
+          ls -al ${{ github.workspace }}/debian
+          ls -al ${{ github.workspace }}/bin
+
+          dpkg-buildpackage -us -uc
+          
+          ls -al
+          mv ${{ github.workspace }}/*.deb ${{ github.workspace }}/${{ env.BINARY_FILE_NAME }}.deb
+
+      - name: Upload dev artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.BINARY_FILE_NAME }}-debian
+          path: ${{ github.workspace }}/${{ env.BINARY_FILE_NAME }}.deb
+          if-no-files-found: error
