@@ -212,7 +212,7 @@ jobs:
       COMPAT_DEFAULT: "9"
       RULES_DEFAULT: '#!/usr/bin/make -f
 %:
-	/usr/bin/dh $@
+	dh $@
 
 override_dh_auto_build:
 	# skip
@@ -229,6 +229,7 @@ override_dh_auto_test:
           sudo apt-get install -y dpkg-dev
           sudo apt-get install -y devscripts debhelper
           sudo apt-get install -y debhelper
+          sudo apt-get install -y fakeroot
 
       - name: Test dependencies
         run: which dh
