@@ -1,4 +1,4 @@
-name: RUn Go Test
+name: Run Go Test
 
 on:
   pull_request:
@@ -28,7 +28,7 @@ jobs:
   test-centeos:
     runs-on: ubuntu-latest
     container:
-      image: centos:centos7
+      image: redhat/ubi9
 
     steps:
       - name: Checkout code
