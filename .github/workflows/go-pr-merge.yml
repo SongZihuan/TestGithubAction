@@ -48,7 +48,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.OUTPUT_UBUNTU_NAME }}
-          path: "${{ github.workspace }}/${{ env.OUTPUT_UBUNTU_NAME }}"
+          path: ${{ github.workspace }}/${{ env.OUTPUT_UBUNTU_NAME }}
 
   build-redhat:
     runs-on: ubuntu-latest
@@ -78,8 +78,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.OUTPUT_UBUNTU_NAME }}
-          path: "${{ github.workspace }}/${{ env.OUTPUT_REHL_NAME }}"
+          name: ${{ env.OUTPUT_REHL_NAME }}
+          path: ${{ github.workspace }}/${{ env.OUTPUT_REHL_NAME }}
 
   create_release:
     runs-on: ubuntu-latest
@@ -123,23 +123,23 @@ jobs:
       - name: Create Git tag
         run: git tag "${{ steps.tag_version.outputs.tag }}"
 
-      - name: Push tag to GitHub
-        run: git push origin "${{ steps.tag_version.outputs.tag }}"
-
       - name: Download ubuntu artifact
         uses: actions/download-artifact@v4
         with:
           name: ${{ env.OUTPUT_UBUNTU_NAME }}
-          path: "${{ github.workspace }}"
+          path: ${{ github.workspace }}
 
       - name: Download redhat artifact
         uses: actions/download-artifact@v4
         with:
           name: ${{ env.OUTPUT_REHL_NAME }}
-          path: "${{ github.workspace }}"
+          path: ${{ github.workspace }}
 
       - name: List directory
         run: ls -l ${{ github.workspace }}
+
+      - name: Push tag to GitHub
+        run: git push origin "${{ steps.tag_version.outputs.tag }}"
 
       - name: Create GitHub Release
         id: create_release
@@ -153,6 +153,7 @@ jobs:
             快来体验吧！
           generateReleaseNotes: true
           makeLatest: "legacy"
+          tag: "${{ steps.tag_version.outputs.tag }} "
 
       - name: Output the URL of the new release
         run: echo "The release is available at ${{ steps.create_release.outputs.html_url }}"
