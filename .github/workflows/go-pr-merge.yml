@@ -2,11 +2,16 @@ name: Publish Go Code
 
 on:
   push:
+    branches-ignore:
+      - changelog-deb
   pull_request:
     types:
       - closed
     branches:
       - main
+      - master
+    branches-ignore:
+      - changelog-deb
 
 env:
   BINARY_FILE_NAME: huan-go-test
@@ -293,11 +298,11 @@ override_dh_auto_test:
           cp ${{ github.workspace }}/${{ env.FILE_RULES }} ${{ github.workspace }}/debian/rules
         
           sudo chmod a+x "${{ github.workspace }}/${{ env.OUTPUT_UBUNTU_NAME }}"
-          mv "${{ github.workspace }}/${{ env.OUTPUT_UBUNTU_NAME }}" "${{ github.workspace }}/bin/$(cat ${{ env.BINARY_FILE_NAME }})"
+          mv "${{ github.workspace }}/${{ env.OUTPUT_UBUNTU_NAME }}" "${{ github.workspace }}/bin/${{ env.BINARY_FILE_NAME }}"
           
-          echo "bin/$(cat ${{ env.BINARY_FILE_NAME }}) $(cat ${{ env.FILE_BIN_PATH }})" > ${{ github.workspace }}/debian/${{ env.PACKAGE_NAME }}.install
+          echo "bin/${{ env.BINARY_FILE_NAME }} $(cat ${{ env.FILE_BIN_PATH }})" > ${{ github.workspace }}/debian/${{ env.PACKAGE_NAME }}.install
           
-          gbp dch --new-version=$VERSION --release --since=${{ needs.create_release.outputs.tag }} --ignore-branch
+          DEBEMAIL="$(git show -s --format='%ae' $(git rev-list --max-parents=0 HEAD))"  gbp dch --new-version=$VERSION --release --since=${{ needs.create_release.outputs.tag }} --ignore-branch
           
           ls -al ${{ github.workspace }}/debian
           ls -al ${{ github.workspace }}/bin
