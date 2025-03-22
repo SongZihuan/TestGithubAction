@@ -19,6 +19,9 @@ jobs:
       - name: Pull Requests Merge
         run: echo "pull requests merge"
 
+      - name: Tmp steps
+        run: ls -al /
+
   build-ubuntu:
     runs-on: ubuntu-latest
     container:
@@ -27,7 +30,9 @@ jobs:
 
     steps:
       - name: Init Ubuntu for Github Action
-        run: ls -l /
+        run: |
+          ln -s /home/runner/work /__w
+          ln -s /home/runner/work/_temp /__t
 
       - name: Echo Github Work Space
         run: |
@@ -61,7 +66,9 @@ jobs:
 
     steps:
       - name: Init Redhat UBI 9 for Github Action
-        run: ls -l /
+        run: |
+          ln -s /home/runner/work /__w
+          ln -s /home/runner/work/_temp /__t
 
       - name: Echo Github Work Space
         run: |
