@@ -137,6 +137,7 @@ jobs:
               echo "tag=$VERSION" >> $GITHUB_OUTPUT
             fi
           else
+            echo "VERSION file not found."
             if git describe --tags; then
                 echo "tag=$(git describe --tags --abbrev=0 | awk -F. '{print $1"."$2+1".0"}')" >> $GITHUB_OUTPUT
               else
