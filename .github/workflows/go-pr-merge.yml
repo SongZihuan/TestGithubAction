@@ -367,9 +367,9 @@ jobs:
           mkdir -p ${{ github.workspace }}/temp
           
           cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}.dsc ${{ github.workspace }}/temp
-          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}_${{ steps.package.outputs.Architecture }}).deb ${{ github.workspace }}/temp
-          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}_${{ steps.package.outputs.Architecture }}).buildinfo ${{ github.workspace }}/temp
-          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}_${{ steps.package.outputs.Architecture }}).changes ${{ github.workspace }}/temp
+          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}_${{ steps.package.outputs.Architecture }}.deb ${{ github.workspace }}/temp
+          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}_${{ steps.package.outputs.Architecture }}.buildinfo ${{ github.workspace }}/temp
+          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}_${{ steps.package.outputs.Architecture }}.changes ${{ github.workspace }}/temp
 
       - name: Upload dev artifact
         uses: actions/upload-artifact@v4
@@ -377,8 +377,8 @@ jobs:
           name: ${{ env.PACKAGE_FILE_NAME_DEB }}
           path: |
             ${{ github.workspace }}/temp/${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}.dsc
-            ${{ github.workspace }}/temp/${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}_${{ steps.package.outputs.Architecture }}).deb
-            ${{ github.workspace }}/temp/${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}_${{ steps.package.outputs.Architecture }}).buildinfo
-            ${{ github.workspace }}/temp/${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}_${{ steps.package.outputs.Architecture }}).changes
+            ${{ github.workspace }}/temp/${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}_${{ steps.package.outputs.Architecture }}.deb
+            ${{ github.workspace }}/temp/${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}_${{ steps.package.outputs.Architecture }}.buildinfo
+            ${{ github.workspace }}/temp/${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}_${{ steps.package.outputs.Architecture }}.changes
           if-no-files-found: error
           retention-days: 90
