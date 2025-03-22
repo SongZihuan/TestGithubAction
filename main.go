@@ -8,11 +8,19 @@ import "fmt"
 
 func main() {
 	fmt.Printf("1 + 1 = %d\n", Add(1, 1))
+	fmt.Printf("3 - 2 = %d\n", Add(3, 2))
 }
 
-func Add(a int, b ...int) int {
+func Add(a ...int) (res int) {
+	for _, r := range a {
+		res += r
+	}
+	return res
+}
+
+func Sub(a int, b ...int) int {
 	for _, r := range b {
-		a += r
+		a -= r
 	}
 
 	return a
