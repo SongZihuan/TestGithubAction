@@ -296,14 +296,17 @@ override_dh_auto_test:
           cp ${{ github.workspace }}/${{ env.FILE_COMPAT }} ${{ github.workspace }}/debian/compat
           cp ${{ github.workspace }}/${{ env.FILE_COPYRIGHT }} ${{ github.workspace }}/debian/copyright
           cp ${{ github.workspace }}/${{ env.FILE_RULES }} ${{ github.workspace }}/debian/rules
-
+          if [ ! -f "${{ github.workspace }}/debian/changelog" ]; then
+            DEBEMAIL="$(git show -s --format='%ae' $(git rev-list --max-parents=0 HEAD))"  dch --create --package ${{ env.PACKAGE_NAME }} --newversion 1.0.0 --distribution unstable "Initial release"
+          fi 
+          
           sudo chmod a+x "${{ github.workspace }}/${{ env.OUTPUT_UBUNTU_NAME }}"
           mv "${{ github.workspace }}/${{ env.OUTPUT_UBUNTU_NAME }}" "${{ github.workspace }}/bin/${{ env.BINARY_FILE_NAME }}"
           
           echo "bin/${{ env.BINARY_FILE_NAME }} $(cat ${{ env.FILE_BIN_PATH }})" > ${{ github.workspace }}/debian/${{ env.PACKAGE_NAME }}.install
           
           echo "Version: $VERSION"
-          DEBEMAIL="$(git show -s --format='%ae' $(git rev-list --max-parents=0 HEAD))" gbp dch --new-version="1.7.0" --release --since=${{ needs.create_release.outputs.tag }} --ignore-branch
+          DEBEMAIL="$(git show -s --format='%ae' $(git rev-list --max-parents=0 HEAD))" gbp dch --new-version="$$VERSION" --release --since=${{ needs.create_release.outputs.tag }} --ignore-branch
           
           ls -al ${{ github.workspace }}/debian
           ls -al ${{ github.workspace }}/bin
