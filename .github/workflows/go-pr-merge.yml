@@ -22,8 +22,8 @@ jobs:
 
   build-ubuntu:
     runs-on: ubuntu-latest
-    container:
-      image: ubuntu:latest
+#    container:
+#      image: ubuntu:latest
     needs: merge
 
     steps:
