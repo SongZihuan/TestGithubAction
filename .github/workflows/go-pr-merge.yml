@@ -27,7 +27,6 @@ jobs:
       volumes:
         - /home/runner/work:/home/runner/work
         - /home/runner/work:/__w
-        - /home/runner/work/_temp:/__t
     needs: merge
 
     steps:
@@ -64,7 +63,6 @@ jobs:
       volumes:
         - /home/runner/work:/home/runner/work
         - /home/runner/work:/__w
-        - /home/runner/work/_temp:/__t
     needs: merge
 
     steps:
