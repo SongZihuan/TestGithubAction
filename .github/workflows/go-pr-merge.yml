@@ -268,7 +268,7 @@ jobs:
           if [ ! -f "${{ github.workspace }}/${{ env.FILE_RULES }}" ]; then
             echo '#!/usr/bin/make -f' > ${{ github.workspace }}/${{ env.FILE_RULES }}
             echo '' >> ${{ github.workspace }}/${{ env.FILE_RULES }}
-            echo '%:' 》> ${{ github.workspace }}/${{ env.FILE_RULES }}
+            echo '%:' >> ${{ github.workspace }}/${{ env.FILE_RULES }}
             echo '    dh @a' >> ${{ github.workspace }}/${{ env.FILE_RULES }}
             echo '' >> ${{ github.workspace }}/${{ env.FILE_RULES }}
             echo 'override_dh_auto_build' >> ${{ github.workspace }}/${{ env.FILE_RULES }}
