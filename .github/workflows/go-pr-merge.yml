@@ -357,11 +357,11 @@ jobs:
           dpkg-buildpackage -us -uc
 
       - name: List Directory After Package
-        run: ls -al ${{ github.workspace }}
+        run: ls -al ${{ github.workspace }}../
 
       - name: Upload dev artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.BINARY_FILE_NAME }}-debian
-          path: ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}_$(cat ${{ github.workspace }}/${{ env.FILE_ARCHITECTURE }}).deb
+          path: ${{ github.workspace }}../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}_$(cat ${{ github.workspace }}/${{ env.FILE_ARCHITECTURE }}).deb
           if-no-files-found: error
