@@ -194,7 +194,7 @@ jobs:
       - create_release
 
     env:
-      FILE_SESSION: ".session"
+      FILE_SECTION: ".section"
       FILE_PRIORITY: ".priority"
       FILE_ARCHITECTURE: ".architecture"
       FILE_DEPENDS: ".depends"
@@ -239,8 +239,8 @@ override_dh_auto_test:
 
       - name: Package Default File Check
         run: |
-          if [ ! -f "${{ github.workspace }}/${{ env.FILE_SESSION }}" ]; then
-            echo "misc" > ${{ github.workspace }}/${{ env.FILE_SESSION }}
+          if [ ! -f "${{ github.workspace }}/${{ env.FILE_SECTION }}" ]; then
+            echo "misc" > ${{ github.workspace }}/${{ env.FILE_SECTION }}
           fi
 
           if [ ! -f "${{ github.workspace }}/${{ env.FILE_PRIORITY }}" ]; then
@@ -277,6 +277,7 @@ override_dh_auto_test:
           fi
 
       - name: Package into .deb
+        id: before-package
         env:
           PACKAGE_NAME: ${{ env.BINARY_FILE_NAME }}
 
@@ -286,10 +287,11 @@ override_dh_auto_test:
           
           TAG=${{ needs.create_release.outputs.tag }}
           VERSION="${TAG#v}"
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
           
           echo "Source: ${{ env.PACKAGE_NAME }}" > ${{ github.workspace }}/debian/control
           echo "Maintainer: $(cat ${{ github.workspace }}/${{ env.FILE_MAINTAINER }})" >> ${{ github.workspace }}/debian/control
-          echo "Session: $(cat ${{ github.workspace }}/${{ env.FILE_SESSION }})" >> ${{ github.workspace }}/debian/control
+          echo "Section: $(cat ${{ github.workspace }}/${{ env.FILE_SECTION }})" >> ${{ github.workspace }}/debian/control
           echo "Priority: $(cat ${{ github.workspace }}/${{ env.FILE_PRIORITY }})" >> ${{ github.workspace }}/debian/control
           echo "Standards-Version: 4.5.0" >> ${{ github.workspace }}/debian/control
           if [ -f "${{ github.workspace }}/${{ env.FILE_DEPENDS }}" ]; then
@@ -340,12 +342,9 @@ override_dh_auto_test:
       - name: List Directory After Package
         run: ls -al ${{ github.workspace }}
 
-      - name: Rename deb
-        run: mv ${{ github.workspace }}/*.deb ${{ github.workspace }}/${{ env.BINARY_FILE_NAME }}.deb
-
       - name: Upload dev artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.BINARY_FILE_NAME }}-debian
-          path: ${{ github.workspace }}/${{ env.BINARY_FILE_NAME }}.deb
+          path: ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}_$(cat ${{ github.workspace }}/${{ env.FILE_ARCHITECTURE }}).deb
           if-no-files-found: error
