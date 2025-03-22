@@ -204,6 +204,7 @@ jobs:
       FILE_COMPAT: ".compat"
       FILE_RULES: ".rules"
       FILE_COPYRIGHT: ".copyright"
+      FILE_BUILD_DEPENDS: ".build.depends"
 
       DESCRIBE_DEFAULT: "The author, like a wisp of cloud passing by, leaves not a single word, yet bestows boundless room for imagination upon the world."
       BIN_PATH_DEFAULT: "usr/local/bin"
@@ -285,18 +286,25 @@ override_dh_auto_test:
           
           TAG=${{ needs.create_release.outputs.tag }}
           VERSION="${TAG#v}"
-          echo "Version ${VERSION}"
           
-          echo "PACKAGE: ${{ env.PACKAGE_NAME }}" > ${{ github.workspace }}/debian/control
-          echo "Version: ${VERSION}" > ${{ github.workspace }}/debian/control
-          echo "Session: $(cat ${{ github.workspace }}/${{ env.FILE_SESSION }})" >> ${{ github.workspace }}/debian/control
-          echo "Priority: $(cat ${{ github.workspace }}/${{ env.FILE_PRIORITY }})" >> ${{ github.workspace }}/debian/control
+          echo "Package: ${{ env.PACKAGE_NAME }}" > ${{ github.workspace }}/debian/control
           echo "Architecture: $(cat ${{ github.workspace }}/${{ env.FILE_ARCHITECTURE }})" >> ${{ github.workspace }}/debian/control
           if [ -f "${{ github.workspace }}/${{ env.FILE_DEPENDS }}" ]; then
             echo "Depends: $(cat ${{ github.workspace }}/${{ env.FILE_DEPENDS }})" >> ${{ github.workspace }}/debian/control
           fi        
-          echo "Maintainer: $(cat ${{ github.workspace }}/${{ env.FILE_MAINTAINER }})" >> ${{ github.workspace }}/debian/control
           echo "Description: $(cat ${{ github.workspace }}/${{ env.FILE_DESCRIBE }})" >> ${{ github.workspace }}/debian/control
+          echo "" >> ${{ github.workspace }}/debian/control
+          echo "Source: ${{ env.PACKAGE_NAME }}" >> ${{ github.workspace }}/debian/control
+          echo "Maintainer: $(cat ${{ github.workspace }}/${{ env.FILE_MAINTAINER }})" >> ${{ github.workspace }}/debian/control
+          echo "Session: $(cat ${{ github.workspace }}/${{ env.FILE_SESSION }})" >> ${{ github.workspace }}/debian/control
+          echo "Priority: $(cat ${{ github.workspace }}/${{ env.FILE_PRIORITY }})" >> ${{ github.workspace }}/debian/control
+          echo "Standards-Version: 4.5.0" >> ${{ github.workspace }}/debian/control
+          if [ -f "${{ github.workspace }}/${{ env.FILE_DEPENDS }}" ]; then
+            echo "Build-Depends: $(cat ${{ github.workspace }}/${{ env.FILE_BUILD_DEPENDS }})" >> ${{ github.workspace }}/debian/control
+          else
+            echo "Build-Depends: debhelper (>= 12)" >> ${{ github.workspace }}/debian/control
+          fi  
+          
           cp ${{ github.workspace }}/${{ env.FILE_COMPAT }} ${{ github.workspace }}/debian/compat
           cp ${{ github.workspace }}/${{ env.FILE_COPYRIGHT }} ${{ github.workspace }}/debian/copyright
           cp ${{ github.workspace }}/${{ env.FILE_RULES }} ${{ github.workspace }}/debian/rules
