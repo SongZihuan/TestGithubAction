@@ -19,9 +19,6 @@ jobs:
       - name: Pull Requests Merge
         run: echo "pull requests merge"
 
-      - name: Tmp steps
-        run: ls -al /
-
   build-ubuntu:
     runs-on: ubuntu-latest
     container:
@@ -50,7 +47,10 @@ jobs:
         run: go build -o "${{ github.workspace }}/${{ env.OUTPUT_UBUNTU_NAME }}" -trimpath -ldflags="-s -w" github.com/SongZihuan/TestGithubAction
 
       - name: List build directory
-        run: ls -l "${{ github.workspace }}"
+        run: |
+          ls -l "${{ github.workspace }}" || 0
+          ls -l /__w  || 0
+          ls -l /__w/TestGithubAction/TestGithubAction || 0
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
