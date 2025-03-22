@@ -347,7 +347,9 @@ override_dh_auto_test:
           ls -al ${{ github.workspace }}/bin
 
       - name: Package deb
-        run: dpkg-buildpackage -us -uc
+        run: |
+          echo "dh: $(which dh)"
+          dpkg-buildpackage -us -uc
 
       - name: List Directory After Package
         run: ls -al ${{ github.workspace }}
