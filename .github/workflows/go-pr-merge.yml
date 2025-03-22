@@ -53,7 +53,7 @@ jobs:
   build-centos:
     runs-on: ubuntu-latest
     container:
-      image: centos:latest
+      image: centos:centos7
     needs: merge
 
     steps:
