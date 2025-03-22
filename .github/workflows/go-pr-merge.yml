@@ -11,6 +11,7 @@ on:
       - main
       - master
 
+
 env:
   BINARY_FILE_NAME: huan-go-test
   OUTPUT_UBUNTU_NAME: huan-go-test-ubuntu
@@ -20,6 +21,7 @@ env:
 jobs:
   merge:
 #    if: github.event.pull_request.merged == true # 仅当PR被合并时触发
+    if: github.head_ref != 'changelog-deb'
     runs-on: ubuntu-latest
 
     steps:
