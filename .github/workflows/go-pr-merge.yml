@@ -118,15 +118,16 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v
         with:
           fetch-depth: 0  # Fetch all history for all branches and tags
+          fetch-tags: true
 
       - name: Fetch all tags
         run: git fetch --tags
 
       - name: Get the latest tag
-        run: echo $(git tag --sort=-creatordate | head -1)
+        run: echo $(git tag)
 
       - name: Create Tag
         id: tag_version
