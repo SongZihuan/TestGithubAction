@@ -451,7 +451,7 @@ jobs:
 
       - name: Get pull request id
         id: get_prid
-        if: steps.create_pr.outputs.merge == true
+        if: steps.create_pr.outputs.merge == 'true'
         run: |
           PR_ID=$(gh pr list --state open --head ${{ env.CHANGE_LOG_DEB_BRANCH }} --base ${{ needs.merge.outputs.branch }} --json number --jq '.[0].number')
           if [ -z "$PR_ID" ]; then
@@ -461,7 +461,7 @@ jobs:
           echo "prid=$PR_ID" >> $GITHUB_OUTPUT
       
       - name: Merge pull request
-        if: steps.create_pr.outputs.merge == true
+        if: steps.create_pr.outputs.merge == 'true'
         run:
           gh pr merge ${{steps.get_prid.outputs.prid}} --rebase --delete-branch
 
