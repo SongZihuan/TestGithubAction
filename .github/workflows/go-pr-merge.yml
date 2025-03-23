@@ -19,7 +19,6 @@ env:
   OUTPUT_UBUNTU_NAME: huan-go-test-ubuntu
   OUTPUT_REHL_NAME: huan-go-test-rehl
   VERSION_FILE: VERSION
-  MAIN_BRANCH: main
   CHANGE_LOG_DEB_BRANCH: changelog-deb
 
 jobs:
@@ -398,7 +397,9 @@ jobs:
           git config --global pull.rebase true
 
       - name: Git Stash Push
-        run: git stash push -m "Temporary save"
+        run: |
+          git add ${{ github.workspace }}/debian/changelog
+          git stash push -m "Temporary save"
 
       - name: Git pull ${{ env.CHANGE_LOG_DEB_BRANCH }}
         run: |
@@ -407,9 +408,15 @@ jobs:
             git pull origin ${{ env.CHANGE_LOG_DEB_BRANCH }}:${{ env.CHANGE_LOG_DEB_BRANCH }}
             git checkout ${{ env.CHANGE_LOG_DEB_BRANCH }}
           else
-            git pull origin ${{ env.MAIN_BRANCH }}:${{ env.MAIN_BRANCH }}
-            git checkout ${{ env.MAIN_BRANCH }}
-            git checkout -b ${{ env.CHANGE_LOG_DEB_BRANCH }}
+            if git ls-remote --heads origin main | grep -q main; then
+              git pull origin main:main
+              git checkout main
+              git checkout ${{ env.CHANGE_LOG_DEB_BRANCH }}
+            else
+              git pull origin master:master
+              git checkout master
+              git checkout -b ${{ env.CHANGE_LOG_DEB_BRANCH }}
+            fi
           fi
 
       - name: Git Stash Pop
@@ -417,7 +424,6 @@ jobs:
 
       - name: Push debian/changelog
         run: |
-          git add ${{ github.workspace }}/debian/changelog
           EDITOR="/bin/true" VISUAL="/bin/true" git commit -m "Update debian/changelog for ${{needs.create_release.outputs.tag}}"
           git push -f origin HEAD:${{ env.CHANGE_LOG_DEB_BRANCH }}
 
