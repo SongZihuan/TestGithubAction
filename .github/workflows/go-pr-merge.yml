@@ -390,18 +390,24 @@ jobs:
           if-no-files-found: error
           retention-days: 90
 
-      - name: Git Config
+      - name: Create and use a temporary directory
+        id: create_temp
+        run: |
+          echo "temp=$(mktemp -d)" >> $GITHUB_OUTPUT
+
+      - name: Save changelog
+        run: cp ${{ github.workflow }}/debian/changelog ${{ steps.create_temp.outputs.temp }}/changelog
+
+      - name: Git set config
         run: |
           git config --global user.name $(git show -s --format='%an' $(git rev-list --max-parents=0 HEAD))
           git config --global user.email $(git show -s --format='%ae' $(git rev-list --max-parents=0 HEAD))
           git config --global pull.rebase true
 
-      - name: Git Stash Push
-        run: |
-          git add ${{ github.workspace }}/debian/changelog
-          git stash push -m "Temporary save"
+      - name: Git reset
+        run: git reset --hard HEAD
 
-      - name: Git pull ${{ env.CHANGE_LOG_DEB_BRANCH }}
+      - name: Git checkout branch
         run: |
           # 检查远程是否有该分支
           if git ls-remote --heads origin ${{ env.CHANGE_LOG_DEB_BRANCH }}-deb | grep -q ${{ env.CHANGE_LOG_DEB_BRANCH }}; then
@@ -419,11 +425,12 @@ jobs:
             fi
           fi
 
-      - name: Git Stash Pop
-        run: git stash pop
+      - name: Write changelog to git
+        run: cp -f ${{ steps.create_temp.outputs.temp }}/changelog ${{ github.workflow }}/debian/changelog
 
       - name: Push debian/changelog
         run: |
+          git add ${{ github.workflow }}/debian/changelog
           EDITOR="/bin/true" VISUAL="/bin/true" git commit -m "Update debian/changelog for ${{needs.create_release.outputs.tag}}"
           git push -f origin HEAD:${{ env.CHANGE_LOG_DEB_BRANCH }}
 
