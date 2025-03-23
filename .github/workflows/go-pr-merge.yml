@@ -128,6 +128,8 @@ jobs:
       - name: Create Tag
         id: tag_version
         run: |
+          echo "Git tag: $(git tag --sort=-creatordate | head -1)"
+          
           if [ -f ${{ github.workspace }}/${{ env.VERSION_FILE }} ]; then
             echo "VERSION file found."
           
@@ -135,14 +137,14 @@ jobs:
               if [[ -n $(git tag --sort=-creatordate | head -1) ]]; then
                 tag=$(git tag --sort=-creatordate | head -1 | awk -F. '{print $1"."$2+1".0"}')
                 echo "tag=$tag" >> $GITHUB_OUTPUT
-                echo "Version is $tag"
+                echo "Auto Version is $tag"
               else
                 echo "tag=v1.0.0" >> $GITHUB_OUTPUT
-                echo "Version is v1.0.0"
+                echo "First Version is v1.0.0"
               fi
             else
               echo "tag=$(cat ${{ env.VERSION_FILE }})" >> $GITHUB_OUTPUT
-              echo "vVersion is $(cat ${{ env.VERSION_FILE }})"
+              echo "File Version is $(cat ${{ env.VERSION_FILE }})"
             fi
           else
             echo "VERSION file not found."
@@ -150,10 +152,10 @@ jobs:
             if [[ -n $(git tag --sort=-creatordate | head -1) ]]; then
               tag=$(git tag --sort=-creatordate | head -1 | awk -F. '{print $1"."$2+1".0"}')
               echo "tag=$tag" >> $GITHUB_OUTPUT
-              echo "Version is $tag"
+              echo "Auto (Not File) Version is $tag"
             else
               echo "tag=v1.0.0" >> $GITHUB_OUTPUT
-              echo "Version is v1.0.0"
+              echo "First (Not File) Version is v1.0.0"
             fi
           fi
 
