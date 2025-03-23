@@ -389,9 +389,6 @@ jobs:
           if-no-files-found: error
           retention-days: 90
 
-      - name: Reset Git
-        run: git reset --hard HEAD
-
       - name: Git pull ${{ env.CHANGE_LOG_DEB_BRANCH }}
         run: |
           # 检查远程是否有该分支
