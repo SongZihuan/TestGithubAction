@@ -349,9 +349,6 @@ jobs:
           
           echo "List ${{ github.workspace }}/debian"
           ls -al ${{ github.workspace }}/debian
-          
-          echo "List ${{ github.workspace }}/bin"
-          ls -al ${{ github.workspace }}/bin
 
       - name: Package deb
         id: package
