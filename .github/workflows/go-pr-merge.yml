@@ -25,7 +25,7 @@ env:
 jobs:
   merge:
 #    if: github.event.pull_request.merged == true # 仅当PR被合并时触发
-    if: github.head_ref != env.CHANGE_LOG_DEB_BRANCH
+    if: github.head_ref != 'changelog-deb'
     runs-on: ubuntu-latest
 
     steps:
