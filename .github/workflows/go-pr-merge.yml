@@ -260,6 +260,7 @@ jobs:
       - name: Test GPG signing
         run: |
           echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --batch --yes --passphrase-fd 0 --pinentry-mode loopback --quick-sign-key ${{ secrets.GPG_KEY_ID }}
+          echo "GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}"
 
       - name: Checkout code
         uses: actions/checkout@v4
@@ -388,7 +389,7 @@ jobs:
         id: package
         run: |
           cat ${{ github.workspace }}/debian/rules
-          DEB_BUILD_OPTIONS="parallel=4 nocheck" dpkg-buildpackage -k ${{ secrets.GPG_KEY_ID }}
+          DEB_BUILD_OPTIONS="parallel=4 nocheck" dpkg-buildpackage --sign-key=${{ secrets.GPG_KEY_ID }}
           echo "Architecture=$(cat ${{ env.FILE_ARCHITECTURE }})" >> $GITHUB_OUTPUT
 
       - name: List directory after package
