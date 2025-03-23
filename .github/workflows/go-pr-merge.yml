@@ -400,8 +400,8 @@ jobs:
 
       - name: Git Config
         run: |
-          git config --global user.email $(git show -s --format='%ae' $(git rev-list --max-parents=0 HEAD))
           git config --global user.name $(git show -s --format='%an' $(git rev-list --max-parents=0 HEAD))
+          git config --global user.email $(git show -s --format='%ae' $(git rev-list --max-parents=0 HEAD))
 
       - name: Push debian/changelog
         run: |
