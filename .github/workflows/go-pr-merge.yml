@@ -233,9 +233,24 @@ jobs:
           sudo apt-get install -y devscripts debhelper
           sudo apt-get install -y debhelper
           sudo apt-get install -y fakeroot
+          sudo apt-get install -y gnupg
 
-      - name: Test dependencies
-        run: which dh
+      - name: Import GPG key
+        run: |
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --import
+          gpg --list-secret-keys
+
+      - name: Configure GPG
+        run: |
+          echo "use-agent" >> ~/.gnupg/gpg.conf
+          echo "pinentry-mode loopback" >> ~/.gnupg/gpg.conf
+          echo "allow-loopback-pinentry" >> ~/.gnupg/gpg-agent.conf
+          echo RELOADAGENT | gpg-connect-agent
+          echo "export GPG_TTY=$(tty)" >> $GITHUB_ENV
+
+      - name: Set GPG signing environment
+        run: |
+          echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --batch --yes --passphrase-fd 0 --pinentry-mode loopback --quick-sign-key ${{ secrets.GPG_KEY_ID }}
 
       - name: Checkout code
         uses: actions/checkout@v4
@@ -365,7 +380,7 @@ jobs:
         run: |
           cat ${{ github.workspace }}/debian/rules
           echo "dh: $(which dh)"
-          dpkg-buildpackage -us -uc
+          DEB_BUILD_OPTIONS="parallel=4 nocheck" dpkg-buildpackage -us -uc -b -k${{ secrets.GPG_KEY_ID }}
           echo "Architecture=$(cat ${{ env.FILE_ARCHITECTURE }})" >> $GITHUB_OUTPUT
 
       - name: List directory after package
