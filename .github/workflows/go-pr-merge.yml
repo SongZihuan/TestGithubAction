@@ -411,7 +411,7 @@ jobs:
             if git ls-remote --heads origin main | grep -q main; then
               git pull origin main:main
               git checkout main
-              git checkout ${{ env.CHANGE_LOG_DEB_BRANCH }}
+              git checkout -b ${{ env.CHANGE_LOG_DEB_BRANCH }}
             else
               git pull origin master:master
               git checkout master
