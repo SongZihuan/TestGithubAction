@@ -132,7 +132,7 @@ jobs:
             echo "VERSION file found."
           
             if git tag --list | grep -q "^$(cat ${{ env.VERSION_FILE }})$"; then
-              if [[ -z $(git tag --sort=-creatordate | head -1) ]]; then
+              if [[ ! -z $(git tag --sort=-creatordate | head -1) ]]; then
                 echo "tag=$(git tag --sort=-creatordate | head -1 | awk -F. '{print $1"."$2+1".0"}')" >> $GITHUB_OUTPUT
               else
                 echo "tag=v1.0.0" >> $GITHUB_OUTPUT
@@ -141,7 +141,9 @@ jobs:
               echo "tag=$(cat ${{ env.VERSION_FILE }})" >> $GITHUB_OUTPUT
             fi
           else
-            if [[ -z $(git tag --sort=-creatordate | head -1) ]]; then
+            echo "VERSION file not found."
+          
+            if [[ ! -z $(git tag --sort=-creatordate | head -1) ]]; then
                 echo "tag=$(git tag --sort=-creatordate | head -1 | awk -F. '{print $1"."$2+1".0"}')" >> $GITHUB_OUTPUT
               else
                 echo "tag=v1.0.0" >> $GITHUB_OUTPUT
