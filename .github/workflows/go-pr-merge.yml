@@ -416,8 +416,8 @@ jobs:
             git pull origin ${{ env.CHANGE_LOG_DEB_BRANCH }}:${{ env.CHANGE_LOG_DEB_BRANCH }}
             git checkout ${{ env.CHANGE_LOG_DEB_BRANCH }}
           else
-            git pull origin ${{ needs.merge.outputs.branch }}:${{ needs.merge.outputs.branch }}
-            git checkout ${{ needs.merge.outputs.branch }}
+            git pull origin ${{ needs.ready.outputs.branch }}:${{ needs.ready.outputs.branch }}
+            git checkout ${{ needs.ready.outputs.branch }}
             git checkout -b ${{ env.CHANGE_LOG_DEB_BRANCH }}
           fi
 
@@ -433,8 +433,8 @@ jobs:
       - name: Create or get pull request
         id: create_pr
         run: |
-          if [[ -z $(gh pr list --state open --head ${{ env.CHANGE_LOG_DEB_BRANCH }} --base ${{ needs.merge.outputs.branch }}) ]]; then
-            gh pr create --title "Update debian/changelog" --body "This is an automated PR requesting a merge into debian/changelog. Created by github workflow." --base ${{ needs.merge.outputs.branch }} --head ${{ env.CHANGE_LOG_DEB_BRANCH }}
+          if [[ -z $(gh pr list --state open --head ${{ env.CHANGE_LOG_DEB_BRANCH }} --base ${{ needs.ready.outputs.branch }}) ]]; then
+            gh pr create --title "Update debian/changelog" --body "This is an automated PR requesting a merge into debian/changelog. Created by github workflow." --base ${{ needs.ready.outputs.branch }} --head ${{ env.CHANGE_LOG_DEB_BRANCH }}
             echo "merge=true" >> $GITHUB_OUTPUT
             echo "New pull request"
           else
@@ -448,7 +448,7 @@ jobs:
         id: get_prid
         if: steps.create_pr.outputs.merge == 'true'
         run: |
-          PR_ID=$(gh pr list --state open --head ${{ env.CHANGE_LOG_DEB_BRANCH }} --base ${{ needs.merge.outputs.branch }} --json number --jq '.[0].number')
+          PR_ID=$(gh pr list --state open --head ${{ env.CHANGE_LOG_DEB_BRANCH }} --base ${{ needs.ready.outputs.branch }} --json number --jq '.[0].number')
           if [ -z "$PR_ID" ]; then
             echo "PANIC Pull Requests Not Found"
             exit 1
