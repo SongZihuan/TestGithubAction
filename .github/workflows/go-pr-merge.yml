@@ -253,14 +253,18 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }} # 使用GITHUB_TOKEN进行身份验证
           ref: ${{ needs.merge.outputs.branch }}
-          path: debian/changelog
+          sparse-checkout: |
+            debian/changelog
+          sparse-checkout-cone-mode: false
 
       - name: Checkout debian changelog2
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }} # 使用GITHUB_TOKEN进行身份验证
           ref: ${{ needs.merge.outputs.branch }}
-          path: debian/changelog2
+          sparse-checkout: |
+            debian/changelog2
+          sparse-checkout-cone-mode: false
 
       - name: Download ubuntu artifact
         uses: actions/download-artifact@v4
