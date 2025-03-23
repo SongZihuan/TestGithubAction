@@ -246,8 +246,8 @@ jobs:
       
           # 配置 gpg-agent.conf
           echo "allow-loopback-pinentry" >> ~/.gnupg/gpg-agent.conf
-      
-          unset GPG_TTY
+          
+          echo "export GPG_TTY=''" >> $GITHUB_ENV
       
           # 重新加载 gpg-agent
           echo RELOADAGENT | gpg-connect-agent
@@ -389,7 +389,7 @@ jobs:
         id: package
         run: |
           cat ${{ github.workspace }}/debian/rules
-          DEB_BUILD_OPTIONS="parallel=4 nocheck" dpkg-buildpackage --sign-key=${{ secrets.GPG_KEY_ID }}
+          echo "${{ secrets.GPG_PASSPHRASE }}" | DEBSIGN_OPTS="--passphrase-fd 0 --pinentry-mode loopback --batch --yes" DEB_BUILD_OPTIONS="parallel=4 nocheck" dpkg-buildpackage --sign-key="${{ secrets.GPG_KEY_ID }}"
           echo "Architecture=$(cat ${{ env.FILE_ARCHITECTURE }})" >> $GITHUB_OUTPUT
 
       - name: List directory after package
