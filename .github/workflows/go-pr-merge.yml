@@ -306,7 +306,7 @@ jobs:
           mkdir -p "${{ github.workspace }}/debian"
           mkdir -p "${{ github.workspace }}/bin"
           
-          VERSION="${${{ needs.create_release.outputs.tag }}#v}"
+          VERSION="$(echo "${{ needs.create_release.outputs.tag }}" | sed 's/^v//')"
           echo "Version: ${VERSION}"
           
           echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
