@@ -459,11 +459,15 @@ jobs:
             exit 1
           fi
           echo "prid=$PR_ID" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
       
       - name: Merge pull request
         if: steps.create_pr.outputs.merge == 'true'
         run:
           gh pr merge ${{steps.get_prid.outputs.prid}} --rebase --delete-branch
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
     outputs:
       PACKAGE_NAME: ${{ env.PACKAGE_NAME }}
