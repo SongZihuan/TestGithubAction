@@ -397,9 +397,11 @@ jobs:
             git pull origin ${{ env.CHANGE_LOG_DEB_BRANCH }}:${{ env.CHANGE_LOG_DEB_BRANCH }}
             git checkout ${{ env.CHANGE_LOG_DEB_BRANCH }}
           else
-            if [[ -n $(git branch | grep main) ]]; then
+            if git show-ref --quiet refs/heads/main; then
+              echo "checkout main"
               git checkout main
             else
+              echo "checkout master"
               git checkout master
             fi
           
