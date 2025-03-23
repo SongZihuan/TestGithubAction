@@ -35,8 +35,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Pull Requests Merge
-        run: echo "pull requests merge"
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get default branch
+        id: get_branch
+        run: |
+          if git ls-remote --heads origin main | grep -q main; then
+            echo "branch=main" >> $GITHUB_OUTPUT
+            echo "default branch: main"
+          elif git ls-remote --heads origin master | grep -q master; then
+            echo "branch=master" >> $GITHUB_OUTPUT
+            echo "default branch: master"
+          else
+            echo "default branch not found"
+            exit 1
+          fi
+
+    outputs:
+      branch: ${{ steps.get_branch.outputs.branch }}
 
   build-ubuntu:
     runs-on: ubuntu-latest
@@ -48,10 +65,6 @@ jobs:
     needs: merge
 
     steps:
-      - name: Echo Github Work Space
-        run: |
-          echo "Github Work Space: ${{ github.workspace }}"
-
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -84,15 +97,6 @@ jobs:
     needs: merge
 
     steps:
-      - name: Init Redhat UBI 9 for Github Action
-        run: |
-          ln -s /home/runner/work /__w
-          ln -s /home/runner/work/_temp /__t
-
-      - name: Echo Github Work Space
-        run: |
-          echo "Github Work Space: ${{ github.workspace }}"
-
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -132,7 +136,7 @@ jobs:
       - name: Fetch all tags
         run: git fetch --tags
 
-      - name: Create Tag
+      - name: Create tag
         id: tag_version
         run: |
           if [ -f ${{ github.workspace }}/${{ env.VERSION_FILE }} ]; then
@@ -182,10 +186,10 @@ jobs:
       - name: List directory
         run: ls -l ${{ github.workspace }}
 
-      - name: Push tag to GitHub
+      - name: Push tag to github
         run: git push origin "${{ steps.tag_version.outputs.tag }}"
 
-      - name: Create GitHub Release
+      - name: Create github release
         id: create_release
         uses: ncipollo/release-action@v1
         with:
@@ -209,6 +213,7 @@ jobs:
   build_deb:
     runs-on: ubuntu-latest
     needs:
+      - merge
       - create_release
 
     env:
@@ -254,7 +259,7 @@ jobs:
           name: ${{ env.OUTPUT_UBUNTU_NAME }}
           path: ${{ github.workspace }}
 
-      - name: Package Default File Check
+      - name: Default file check
         run: |
           if [ ! -f "${{ github.workspace }}/${{ env.FILE_SECTION }}" ]; then
             echo "misc" > ${{ github.workspace }}/${{ env.FILE_SECTION }}
@@ -357,7 +362,7 @@ jobs:
           
           EDITOR="/bin/true" VISUAL="/bin/true" DEBFULLNAME="$(git show -s --format='%an' $(git rev-list --max-parents=0 HEAD))" DEBEMAIL="$(git show -s --format='%ae' $(git rev-list --max-parents=0 HEAD))" dch --package ${{ env.PACKAGE_NAME }} --newversion ${VERSION} --force-distribution --distribution unstable "Visit to ${{ needs.create_release.outputs.release }}!"
 
-      - name: List Directory
+      - name: List directory
         run: |
           echo "List ${{ github.workspace }}"
           ls -al ${{ github.workspace }}
@@ -373,7 +378,7 @@ jobs:
           dpkg-buildpackage -us -uc
           echo "Architecture=$(cat ${{ env.FILE_ARCHITECTURE }})" >> $GITHUB_OUTPUT
 
-      - name: List Directory After Package
+      - name: List directory after package
         run: ls -al ${{ github.workspace }}/../
 
       - name: Temporary copy file
@@ -385,7 +390,7 @@ jobs:
           cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}_${{ steps.package.outputs.Architecture }}.buildinfo ${{ github.workspace }}/temp
           cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}_${{ steps.package.outputs.Architecture }}.changes ${{ github.workspace }}/temp
 
-      - name: Upload dev artifact
+      - name: Upload deb artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.PACKAGE_FILE_NAME_DEB }}
@@ -421,15 +426,9 @@ jobs:
             git pull origin ${{ env.CHANGE_LOG_DEB_BRANCH }}:${{ env.CHANGE_LOG_DEB_BRANCH }}
             git checkout ${{ env.CHANGE_LOG_DEB_BRANCH }}
           else
-            if git ls-remote --heads origin main | grep -q main; then
-              git pull origin main:main
-              git checkout main
-              git checkout -b ${{ env.CHANGE_LOG_DEB_BRANCH }}
-            else
-              git pull origin master:master
-              git checkout master
-              git checkout -b ${{ env.CHANGE_LOG_DEB_BRANCH }}
-            fi
+            git pull origin ${{ needs.merge.outputs.branch }}:${{ needs.merge.outputs.branch }}
+            git checkout ${{ needs.merge.outputs.branch }}
+            git checkout -b ${{ env.CHANGE_LOG_DEB_BRANCH }}
           fi
 
       - name: Write changelog to git
@@ -441,13 +440,33 @@ jobs:
           EDITOR="/bin/true" VISUAL="/bin/true" git commit -m "Update debian/changelog for ${{needs.create_release.outputs.tag}}"
           git push -f origin HEAD:${{ env.CHANGE_LOG_DEB_BRANCH }}
 
-      - name: Create Pull Request
+      - name: Create or get pull request
+        id: create_pr
         run: |
-          if [[ -z $(gh pr list --state open --head ${{ env.CHANGE_LOG_DEB_BRANCH }} --base main) ]]; then
-            gh pr create --title "Update debian/changelog" --body "This is an automated PR requesting a merge into debian/changelog. Created by github workflow." --base main --head ${{ env.CHANGE_LOG_DEB_BRANCH }}
+          if [[ -z $(gh pr list --state open --head ${{ env.CHANGE_LOG_DEB_BRANCH }} --base ${{ needs.merge.outputs.branch }}) ]]; then
+            gh pr create --title "Update debian/changelog" --body "This is an automated PR requesting a merge into debian/changelog. Created by github workflow." --base ${{ needs.merge.outputs.branch }} --head ${{ env.CHANGE_LOG_DEB_BRANCH }}
+            echo "merge=true" >> $GITHUB_OUTPUT
+          else:
+            echo "merge=false" >> $GITHUB_OUTPUT
           fi
         env:
           GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Get pull request id
+        id: get_prid
+        if: steps.create_pr.outputs.merge == true
+        run: |
+          PR_ID=$(gh pr list --state open --head ${{ env.CHANGE_LOG_DEB_BRANCH }} --base ${{ needs.merge.outputs.branch }} --json number --jq '.[0].number')
+          if [ -z "$PR_ID" ]; then
+            echo "PANIC Pull Requests Not Found"
+            exit 1
+          fi
+          echo "prid=$PR_ID" >> $GITHUB_OUTPUT
+      
+      - name: Merge pull request
+        if: steps.create_pr.outputs.merge == true
+        run:
+          gh pr merge ${{steps.get_prid.outputs.prid}} --rebase --delete-branch
 
     outputs:
       PACKAGE_NAME: ${{ env.PACKAGE_NAME }}
@@ -467,11 +486,11 @@ jobs:
           name: ${{ env.PACKAGE_FILE_NAME_DEB }}
           path: ${{ github.workspace }}
 
-      - name: Get MD5
+      - name: Get file md5
         run: |
           echo "$(md5sum ${{ github.workspace }}/${{ needs.build_deb.outputs.PACKAGE_NAME }}_${{ needs.build_deb.outputs.VERSION }}_${{ needs.build_deb.outputs.ARCHITECTURE }}.deb | awk '{print $1}')" > ${{ github.workspace }}/${{ needs.build_deb.outputs.PACKAGE_NAME }}_${{ needs.build_deb.outputs.VERSION }}_${{ needs.build_deb.outputs.ARCHITECTURE }}.deb.md5
           
-      - name: Upload Release Asset
+      - name: Upload release asset
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ needs.create_release.outputs.tag }}
