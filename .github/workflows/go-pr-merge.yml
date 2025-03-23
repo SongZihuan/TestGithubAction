@@ -132,22 +132,29 @@ jobs:
             echo "VERSION file found."
           
             if git tag --list | grep -q "^$(cat ${{ env.VERSION_FILE }})$"; then
-              if [[ ! -z $(git tag --sort=-creatordate | head -1) ]]; then
-                echo "tag=$(git tag --sort=-creatordate | head -1 | awk -F. '{print $1"."$2+1".0"}')" >> $GITHUB_OUTPUT
+              if [[ -n $(git tag --sort=-creatordate | head -1) ]]; then
+                tag=$(git tag --sort=-creatordate | head -1 | awk -F. '{print $1"."$2+1".0"}')
+                echo "tag=$tag" >> $GITHUB_OUTPUT
+                echo "Version is $tag"
               else
                 echo "tag=v1.0.0" >> $GITHUB_OUTPUT
+                echo "Version is v1.0.0"
               fi
             else
               echo "tag=$(cat ${{ env.VERSION_FILE }})" >> $GITHUB_OUTPUT
+              echo "vVersion is $(cat ${{ env.VERSION_FILE }})"
             fi
           else
             echo "VERSION file not found."
           
-            if [[ ! -z $(git tag --sort=-creatordate | head -1) ]]; then
-                echo "tag=$(git tag --sort=-creatordate | head -1 | awk -F. '{print $1"."$2+1".0"}')" >> $GITHUB_OUTPUT
-              else
-                echo "tag=v1.0.0" >> $GITHUB_OUTPUT
-              fi
+            if [[ -n $(git tag --sort=-creatordate | head -1) ]]; then
+              tag=$(git tag --sort=-creatordate | head -1 | awk -F. '{print $1"."$2+1".0"}')
+              echo "tag=$tag" >> $GITHUB_OUTPUT
+              echo "Version is $tag"
+            else
+              echo "tag=v1.0.0" >> $GITHUB_OUTPUT
+              echo "Version is v1.0.0"
+            fi
           fi
 
       - name: Create Git tag
