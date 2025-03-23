@@ -19,6 +19,7 @@ env:
   OUTPUT_UBUNTU_NAME: huan-go-test-ubuntu
   OUTPUT_REHL_NAME: huan-go-test-rehl
   VERSION_FILE: VERSION
+  MAIN_BRANCH: main
   CHANGE_LOG_DEB_BRANCH: changelog-deb
 
 jobs:
@@ -400,14 +401,8 @@ jobs:
             git pull origin ${{ env.CHANGE_LOG_DEB_BRANCH }}:${{ env.CHANGE_LOG_DEB_BRANCH }}
             git checkout ${{ env.CHANGE_LOG_DEB_BRANCH }}
           else
-            if git show-ref --quiet refs/heads/main; then
-              echo "checkout main"
-              git checkout main
-            else
-              echo "checkout master"
-              git checkout master
-            fi
-          
+            git pull origin ${{ env.MAIN_BRANCH }}:${{ env.MAIN_BRANCH }}
+            git checkout ${{ env.MAIN_BRANCH }}
             git checkout -b ${{ env.CHANGE_LOG_DEB_BRANCH }}
           fi
 
