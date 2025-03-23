@@ -389,7 +389,7 @@ jobs:
         id: package
         run: |
           cat ${{ github.workspace }}/debian/rules
-          echo "${{ secrets.GPG_PASSPHRASE }}" | DEB_BUILD_OPTIONS="parallel=4 nocheck" dpkg-buildpackage --sign-key="${{ secrets.GPG_KEY_ID }}" --sign-command="gpg --batch --yes --passphrase-fd 0 --pinentry-mode loopback  --quick-sign-key ${{ secrets.GPG_KEY_ID }}"
+          echo "${{ secrets.GPG_PASSPHRASE }}" | dpkg-buildpackage --sign-key="${{ secrets.GPG_KEY_ID }}" --sign-command="gpg --batch --yes --passphrase-fd 0 --pinentry-mode loopback"
           echo "Architecture=$(cat ${{ env.FILE_ARCHITECTURE }})" >> $GITHUB_OUTPUT
 
       - name: List directory after package
