@@ -9,7 +9,7 @@ on:
 
 jobs:
   test:
-    if: github.head_ref != 'changelog-deb'
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.ref != 'changelog-deb'
     runs-on: ubuntu-latest
 
     steps:

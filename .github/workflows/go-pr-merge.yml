@@ -1,11 +1,6 @@
 name: Publish Go Code
 
 on:
-  push:
-    branches-ignore:
-      - changelog-deb
-      - main
-      - master
   pull_request:
     types:
       - closed
@@ -24,9 +19,9 @@ env:
   CHANGE_LOG_DEB_BRANCH: changelog-deb
 
 jobs:
-  merge:
+  ready:
     # 此处 if 中不能使用env
-    if: github.event_name != 'pull_request' || (github.event.pull_request.head.ref != 'changelog-deb' && github.event.pull_request.merged == true)
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.ref != 'changelog-deb' && github.event.pull_request.merged == true
     runs-on: ubuntu-latest
 
     steps:
