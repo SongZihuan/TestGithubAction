@@ -274,7 +274,7 @@ jobs:
             echo '#!/usr/bin/make -f' > ${{ github.workspace }}/${{ env.FILE_RULES }}
             echo '' >> ${{ github.workspace }}/${{ env.FILE_RULES }}
             echo '%:' >> ${{ github.workspace }}/${{ env.FILE_RULES }}
-            echo -e '\tdh $@' >> ${{ github.workspace }}/${{ env.FILE_RULES }}
+            echo -e '\t# skip' >> ${{ github.workspace }}/${{ env.FILE_RULES }}
             echo '' >> ${{ github.workspace }}/${{ env.FILE_RULES }}
             echo 'override_dh_auto_build:' >> ${{ github.workspace }}/${{ env.FILE_RULES }}
             echo -e '\t# skip' >> ${{ github.workspace }}/${{ env.FILE_RULES }}
