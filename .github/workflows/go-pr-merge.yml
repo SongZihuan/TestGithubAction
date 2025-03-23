@@ -396,7 +396,7 @@ jobs:
           echo "temp=$(mktemp -d)" >> $GITHUB_OUTPUT
 
       - name: Save changelog
-        run: cp ${{ github.workflow }}/debian/changelog ${{ steps.create_temp.outputs.temp }}/changelog
+        run: cp ${{ github.workspace }}/debian/changelog ${{ steps.create_temp.outputs.temp }}/changelog
 
       - name: Git set config
         run: |
