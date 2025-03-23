@@ -130,25 +130,22 @@ jobs:
         run: |
           if [ -f ${{ github.workspace }}/${{ env.VERSION_FILE }} ]; then
             echo "VERSION file found."
-            VERSION=$(cat ${{ env.VERSION_FILE }})
           
-            if git tag --list | grep -q "^${VERSION}$"; then
-              if git describe --tags; then
-                echo "Tag is $(git describe --tags --abbrev=0)"
-                echo "tag=$(git describe --tags --abbrev=0 | awk -F. '{print $1"."$2+1".0"}')" >> $GITHUB_OUTPUT
+            if git tag --list | grep -q "^$(cat ${{ env.VERSION_FILE }})$"; then
+              if [[ -z $(git tag --sort=-creatordate | head -1) ]]; then
+                echo "tag=$(git tag --sort=-creatordate | head -1 | awk -F. '{print $1"."$2+1".0"}')" >> $GITHUB_OUTPUT
               else
                 echo "tag=v1.0.0" >> $GITHUB_OUTPUT
               fi
             else
-              echo "tag=$VERSION" >> $GITHUB_OUTPUT
+              echo "tag=$(cat ${{ env.VERSION_FILE }})" >> $GITHUB_OUTPUT
             fi
           else
-            echo "VERSION file not found."
-            if git describe --tags; then
-                echo "tag=$(git describe --tags --abbrev=0 | awk -F. '{print $1"."$2+1".0"}')" >> $GITHUB_OUTPUT
+            if [[ -z $(git tag --sort=-creatordate | head -1) ]]; then
+                echo "tag=$(git tag --sort=-creatordate | head -1 | awk -F. '{print $1"."$2+1".0"}')" >> $GITHUB_OUTPUT
               else
                 echo "tag=v1.0.0" >> $GITHUB_OUTPUT
-            fi
+              fi
           fi
 
       - name: Create Git tag
@@ -300,8 +297,7 @@ jobs:
           mkdir -p "${{ github.workspace }}/debian"
           mkdir -p "${{ github.workspace }}/bin"
           
-          TAG=${{ needs.create_release.outputs.tag }}
-          VERSION="${TAG#v}"
+          VERSION="${${{ needs.create_release.outputs.tag }}#v}"
           echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
           
           echo "Source: ${{ env.PACKAGE_NAME }}" > ${{ github.workspace }}/debian/control
