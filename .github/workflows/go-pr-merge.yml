@@ -385,11 +385,17 @@ jobs:
           echo "List ${{ github.workspace }}/debian"
           ls -al ${{ github.workspace }}/debian
 
+      - name: Make sign command
+        run: |
+          echo "#!/bin/bash" > ${{ github.workspace }}/sign.sh
+          echo "PASSPHRASE=$(cat)" >> ${{ github.workspace }}/sign.sh
+          echo "echo "$PASSPHRASE" | gpg --batch --yes --passphrase-fd 0 --pinentry-mode loopback $@" >> ${{ github.workspace }}/sign.sh
+
       - name: Package deb
         id: package
         run: |
           cat ${{ github.workspace }}/debian/rules
-          echo "${{ secrets.GPG_PASSPHRASE }}" | dpkg-buildpackage --sign-key="${{ secrets.GPG_KEY_ID }}" --sign-command="gpg --batch --yes --passphrase-fd 0 --pinentry-mode loopback"
+          echo "${{ secrets.GPG_PASSPHRASE }}" | dpkg-buildpackage --sign-key="${{ secrets.GPG_KEY_ID }}" --sign-command="${{ github.workspace }}/sign.sh"
           echo "Architecture=$(cat ${{ env.FILE_ARCHITECTURE }})" >> $GITHUB_OUTPUT
 
       - name: List directory after package
