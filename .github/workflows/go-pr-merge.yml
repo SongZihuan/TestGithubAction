@@ -252,8 +252,12 @@ jobs:
 
       - name: Import GPG key
         run: |
-          echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --batch --yes --passphrase-fd 0 --pinentry-mode loopback --quick-sign-key ${{ secrets.GPG_KEY_ID }}
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --yes --import
           gpg --list-secret-keys
+
+      - name: Test GPG signing
+        run: |
+          echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --batch --yes --passphrase-fd 0 --pinentry-mode loopback --quick-sign-key ${{ secrets.GPG_KEY_ID }}
 
       - name: Checkout code
         uses: actions/checkout@v4
