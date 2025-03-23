@@ -235,22 +235,24 @@ jobs:
           sudo apt-get install -y fakeroot
           sudo apt-get install -y gnupg
 
-      - name: Import GPG key
+      - name: Set GPG_TTY
         run: |
-          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --import
-          gpg --list-secret-keys
+          echo "tty: $(tty)"
+          echo "export GPG_TTY=$(tty)" >> $GITHUB_ENV
 
       - name: Configure GPG
         run: |
+          mkdir -p ~/.gnupg
+          chmod 700 ~/.gnupg
           echo "use-agent" >> ~/.gnupg/gpg.conf
           echo "pinentry-mode loopback" >> ~/.gnupg/gpg.conf
           echo "allow-loopback-pinentry" >> ~/.gnupg/gpg-agent.conf
           echo RELOADAGENT | gpg-connect-agent
-          echo "export GPG_TTY=$(tty)" >> $GITHUB_ENV
 
-      - name: Set GPG signing environment
+      - name: Import GPG key
         run: |
-          echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --batch --yes --passphrase-fd 0 --pinentry-mode loopback --quick-sign-key ${{ secrets.GPG_KEY_ID }}
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --yes --import
+          gpg --list-secret-keys
 
       - name: Checkout code
         uses: actions/checkout@v4
