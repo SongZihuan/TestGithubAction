@@ -3,14 +3,16 @@ name: Merge Changelog
 on:
   pull_request:
     types:
-      - closed
+      - opened
+      - reopened
+      - synchronize
     branches:
       - main
       - master
 
 jobs:
   merge:
-    if: github.head_ref != 'changelog-deb'
+    if: github.head_ref == 'changelog-deb'
     runs-on: ubuntu-latest
 
     steps:

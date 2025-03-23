@@ -24,7 +24,7 @@ env:
 jobs:
   merge:
 #    if: github.event.pull_request.merged == true # 仅当PR被合并时触发
-    if: github.head_ref != 'changelog-deb'
+    if: github.event.pull_request.head.ref != 'changelog-deb'
     runs-on: ubuntu-latest
 
     steps:
@@ -390,6 +390,9 @@ jobs:
           if-no-files-found: error
           retention-days: 90
 
+      - name: Git Stash Push
+        run: git stash push -m "Temporary save"
+
       - name: Git pull ${{ env.CHANGE_LOG_DEB_BRANCH }}
         run: |
           # 检查远程是否有该分支
@@ -407,6 +410,9 @@ jobs:
           
             git checkout -b ${{ env.CHANGE_LOG_DEB_BRANCH }}
           fi
+
+      - name: Git Stash Pop
+        run: git stash pop
 
       - name: Git Config
         run: |
