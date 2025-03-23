@@ -4,6 +4,7 @@ on:
   push:
     branches-ignore:
       - changelog-deb
+      - main
   pull_request:
     types:
       - closed
