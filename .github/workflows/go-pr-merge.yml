@@ -441,7 +441,7 @@ jobs:
           if [[ -z $(gh pr list --state open --head ${{ env.CHANGE_LOG_DEB_BRANCH }} --base ${{ needs.merge.outputs.branch }}) ]]; then
             gh pr create --title "Update debian/changelog" --body "This is an automated PR requesting a merge into debian/changelog. Created by github workflow." --base ${{ needs.merge.outputs.branch }} --head ${{ env.CHANGE_LOG_DEB_BRANCH }}
             echo "merge=true" >> $GITHUB_OUTPUT
-          else:
+          else
             echo "merge=false" >> $GITHUB_OUTPUT
           fi
         env:
