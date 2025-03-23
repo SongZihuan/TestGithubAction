@@ -128,6 +128,7 @@ jobs:
       - name: Create Tag
         id: tag_version
         run: |
+          echo "GITHUB_REF: $GITHUB_REF"
           echo "Git tag: $(git tag --sort=-creatordate | head -1)"
           
           if [ -f ${{ github.workspace }}/${{ env.VERSION_FILE }} ]; then
