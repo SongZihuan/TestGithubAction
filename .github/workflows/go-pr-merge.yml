@@ -118,12 +118,15 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v2
         with:
-          fetch-depth: 0 # 获取所有历史记录以便能够创建标签
+          fetch-depth: 0  # Fetch all history for all branches and tags
 
-      - name: Fetch tags
+      - name: Fetch all tags
         run: git fetch --tags
+
+      - name: Get the latest tag
+        run: echo $(git tag --sort=-creatordate | head -1)
 
       - name: Create Tag
         id: tag_version
