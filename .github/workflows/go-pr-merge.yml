@@ -407,7 +407,7 @@ jobs:
         run: |
           git add ${{ github.workspace }}/debian/changelog
           EDITOR="/bin/true" VISUAL="/bin/true" git commit -m "Update debian/changelog for ${{needs.create_release.outputs.tag}}"
-          git push origin HEAD:${{ env.CHANGE_LOG_DEB_BRANCH }}
+          git push -f origin HEAD:${{ env.CHANGE_LOG_DEB_BRANCH }}
 
       - name: Create Pull Request
         run: |
