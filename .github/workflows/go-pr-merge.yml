@@ -5,6 +5,7 @@ on:
     branches-ignore:
       - changelog-deb
       - main
+      - master
   pull_request:
     types:
       - closed
@@ -23,15 +24,8 @@ env:
   CHANGE_LOG_DEB_BRANCH: changelog-deb
 
 jobs:
-  tmp:
-    runs-on: ubuntu-latest
-
-    steps:
-      - run: "echo 'Ref: ${{ github.event.pull_request.head.ref }}'"
-
   merge:
-#    if: github.event.pull_request.merged == true # 仅当PR被合并时触发
-    if: github.event.pull_request.head.ref != 'changelog-deb'
+    if: github.event_name != 'pull_request' || (github.event.pull_request.head.ref != env.CHANGE_LOG_DEB_BRANCH && github.event.pull_request.merged == true)
     runs-on: ubuntu-latest
 
     steps:
