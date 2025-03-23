@@ -8,10 +8,20 @@ on:
       - synchronize
 
 jobs:
+  test:
+    if: github.head_ref != 'changelog-deb'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Start Run Test
+        run: echo "start run test"
+
   test-ubuntu:
     runs-on: ubuntu-latest
     container:
       image: ubuntu:latest
+
+    needs: test
 
     steps:
       - name: Checkout code
@@ -29,6 +39,8 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: redhat/ubi9
+
+    needs: test
 
     steps:
       - name: Checkout code
