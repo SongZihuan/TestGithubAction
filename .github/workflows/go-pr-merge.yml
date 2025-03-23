@@ -300,6 +300,8 @@ jobs:
           mkdir -p "${{ github.workspace }}/bin"
           
           VERSION="${${{ needs.create_release.outputs.tag }}#v}"
+          echo "Version: ${VERSION}"
+          
           echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
           
           echo "Source: ${{ env.PACKAGE_NAME }}" > ${{ github.workspace }}/debian/control
@@ -330,7 +332,7 @@ jobs:
           sudo chmod a+x ${{ github.workspace }}/debian/rules
           
           if [ ! -f "${{ github.workspace }}/debian/changelog" ]; then
-            EDITOR="/bin/true" VISUAL="/bin/true" DEBFULLNAME="$(git show -s --format='%an' $(git rev-list --max-parents=0 HEAD))" DEBEMAIL="$(git show -s --format='%ae' $(git rev-list --max-parents=0 HEAD))" dch --create --package ${{ env.PACKAGE_NAME }} --force-distribution --newversion 1.0.0 --distribution unstable "Initial release"
+            EDITOR="/bin/true" VISUAL="/bin/true" DEBFULLNAME="$(git show -s --format='%an' $(git rev-list --max-parents=0 HEAD))" DEBEMAIL="$(git show -s --format='%ae' $(git rev-list --max-parents=0 HEAD))" dch --create --package ${{ env.PACKAGE_NAME }} --newversion 1.0.0 --force-distribution --distribution unstable "Initial release"
           fi 
           
           sudo chmod a+x "${{ github.workspace }}/${{ env.OUTPUT_UBUNTU_NAME }}"
@@ -338,7 +340,7 @@ jobs:
           
           echo "bin/${{ env.PACKAGE_NAME }} $(cat ${{ env.FILE_BIN_PATH }})" > ${{ github.workspace }}/debian/${{ env.PACKAGE_NAME }}.install
           
-          EDITOR="/bin/true" VISUAL="/bin/true" DEBFULLNAME="$(git show -s --format='%an' $(git rev-list --max-parents=0 HEAD))" DEBEMAIL="$(git show -s --format='%ae' $(git rev-list --max-parents=0 HEAD))" dch --package ${{ env.PACKAGE_NAME }} --force-distribution --newversion ${VERSION} --distribution unstable "Visit to ${{ needs.create_release.outputs.release }}!"
+          EDITOR="/bin/true" VISUAL="/bin/true" DEBFULLNAME="$(git show -s --format='%an' $(git rev-list --max-parents=0 HEAD))" DEBEMAIL="$(git show -s --format='%ae' $(git rev-list --max-parents=0 HEAD))" dch --package ${{ env.PACKAGE_NAME }} --newversion ${VERSION} --force-distribution --distribution unstable "Visit to ${{ needs.create_release.outputs.release }}!"
 
       - name: List Directory
         run: |
