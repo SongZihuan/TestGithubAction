@@ -390,6 +390,7 @@ jobs:
           echo "#!/bin/bash" > ${{ github.workspace }}/sign.sh
           echo "PASSPHRASE=$(cat)" >> ${{ github.workspace }}/sign.sh
           echo "echo "$PASSPHRASE" | gpg --batch --yes --passphrase-fd 0 --pinentry-mode loopback $@" >> ${{ github.workspace }}/sign.sh
+          sudo chmod a+x ${{ github.workspace }}/sign.sh
 
       - name: Package deb
         id: package
