@@ -213,7 +213,7 @@ jobs:
       DESCRIBE_DEFAULT: "The author, like a wisp of cloud passing by, leaves not a single word, yet bestows boundless room for imagination upon the world."
       BIN_PATH_DEFAULT: "usr/local/bin"
       ARCHITECTURE_DEFAULT: "amd64"
-      COMPAT_DEFAULT: "9"
+      COMPAT_DEFAULT: "10"
 
     steps:
       - name: Set up dependencies
@@ -298,7 +298,7 @@ jobs:
 
         run: |
           mkdir -p "${{ github.workspace }}/debian"
-          mkdir -p "${{ github.workspace }}/debian/$(cat ${{ env.FILE_BIN_PATH }})"
+          mkdir -p "${{ github.workspace }}/binary/$(cat ${{ env.FILE_BIN_PATH }})"
           
           TAG=${{ needs.create_release.outputs.tag }}
           VERSION="${TAG#v}"
@@ -336,9 +336,9 @@ jobs:
           fi 
           
           sudo chmod a+x "${{ github.workspace }}/${{ env.OUTPUT_UBUNTU_NAME }}"
-          mv "${{ github.workspace }}/${{ env.OUTPUT_UBUNTU_NAME }}" "${{ github.workspace }}/debian/$(cat ${{ env.FILE_BIN_PATH }})/${{ env.PACKAGE_NAME }}"
+          mv "${{ github.workspace }}/${{ env.OUTPUT_UBUNTU_NAME }}" "${{ github.workspace }}/binary/$(cat ${{ env.FILE_BIN_PATH }})/${{ env.PACKAGE_NAME }}"
           
-          echo "$(cat ${{ env.FILE_BIN_PATH }})/${{ env.PACKAGE_NAME }} $(cat ${{ env.FILE_BIN_PATH }})" > ${{ github.workspace }}/debian/${{ env.PACKAGE_NAME }}.install
+          echo "binary/$(cat ${{ env.FILE_BIN_PATH }})/${{ env.PACKAGE_NAME }} $(cat ${{ env.FILE_BIN_PATH }})" > ${{ github.workspace }}/debian/${{ env.PACKAGE_NAME }}.install
           
           EDITOR="/bin/true" VISUAL="/bin/true" DEBFULLNAME="$(git show -s --format='%an' $(git rev-list --max-parents=0 HEAD))" DEBEMAIL="$(git show -s --format='%ae' $(git rev-list --max-parents=0 HEAD))" dch --package ${{ env.PACKAGE_NAME }} --force-distribution --newversion ${VERSION} --distribution unstable "Visit to ${{ needs.create_release.outputs.release }}!"
 
