@@ -20,11 +20,12 @@ env:
   OUTPUT_UBUNTU_NAME: huan-go-test-ubuntu
   OUTPUT_REHL_NAME: huan-go-test-rehl
   VERSION_FILE: VERSION
+  CHANGE_LOG_DEB_BRANCH: changelog-deb
 
 jobs:
   merge:
 #    if: github.event.pull_request.merged == true # 仅当PR被合并时触发
-    if: github.head_ref != 'changelog-deb'
+    if: github.head_ref != env.CHANGE_LOG_DEB_BRANCH
     runs-on: ubuntu-latest
 
     steps:
@@ -231,6 +232,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0 # 获取所有历史记录以便能够创建标签
+          token: ${{ secrets.GITHUB_TOKEN }} # 使用GITHUB_TOKEN进行身份验证
 
       - name: Download ubuntu artifact
         uses: actions/download-artifact@v4
@@ -382,3 +384,30 @@ jobs:
             ${{ github.workspace }}/temp/${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}_${{ steps.package.outputs.Architecture }}.changes
           if-no-files-found: error
           retention-days: 90
+
+      - name: Reset Git
+        run: git reset --hard HEAD
+
+      - name: Git pull ${{ env.CHANGE_LOG_DEB_BRANCH }}
+        run: |
+          # 检查远程是否有该分支
+          if git ls-remote --heads origin ${{ env.CHANGE_LOG_DEB_BRANCH }}-deb | grep -q ${{ env.CHANGE_LOG_DEB_BRANCH }}; then
+            git pull origin ${{ env.CHANGE_LOG_DEB_BRANCH }}:${{ env.CHANGE_LOG_DEB_BRANCH }}
+            git checkout ${{ env.CHANGE_LOG_DEB_BRANCH }}
+          else
+            git checkout -b ${{ env.CHANGE_LOG_DEB_BRANCH }}
+          fi
+
+      - name: Push debian/changelog
+        run: |
+          git add ${{ github.workspace }}/debian/changelog
+          EDITOR="/bin/true" VISUAL="/bin/true" git commit -m "Update debian/changelog for ${{needs.create_release.outputs.tag}}"
+          git push origin HEAD:${{ env.CHANGE_LOG_DEB_BRANCH }}
+
+      - name: Create Pull Request
+        run: |
+          if [[ -z $(gh pr list --state open --head ${{ env.CHANGE_LOG_DEB_BRANCH }} --base main) ]]
+            gh pr create --title "Update debian/changelog" --body "This is an automated PR requesting a merge into debian/changelog. Created by github workflow." --base main --head feature-branch
+          fi
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
