@@ -426,11 +426,11 @@ jobs:
           fi
 
       - name: Write changelog to git
-        run: cp -f ${{ steps.create_temp.outputs.temp }}/changelog ${{ github.workflow }}/debian/changelog
+        run: cp -f ${{ steps.create_temp.outputs.temp }}/changelog ${{ github.workspace }}/debian/changelog
 
       - name: Push debian/changelog
         run: |
-          git add ${{ github.workflow }}/debian/changelog
+          git add ${{ github.workspace }}/debian/changelog
           EDITOR="/bin/true" VISUAL="/bin/true" git commit -m "Update debian/changelog for ${{needs.create_release.outputs.tag}}"
           git push -f origin HEAD:${{ env.CHANGE_LOG_DEB_BRANCH }}
 
