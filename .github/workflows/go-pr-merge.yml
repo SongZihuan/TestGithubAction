@@ -398,6 +398,11 @@ jobs:
             git checkout -b ${{ env.CHANGE_LOG_DEB_BRANCH }}
           fi
 
+      - name: Git Config
+        run: |
+          git config --global user.email $(git show -s --format='%ae' $(git rev-list --max-parents=0 HEAD))
+          git config --global user.name $(git show -s --format='%an' $(git rev-list --max-parents=0 HEAD))
+
       - name: Push debian/changelog
         run: |
           git add ${{ github.workspace }}/debian/changelog
