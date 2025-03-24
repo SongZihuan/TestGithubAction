@@ -642,6 +642,17 @@ jobs:
       - build_deb
 
     steps:
+      - name: Install gpg and dput
+        run: |
+          sudo apt update -y
+          sudo apt install -y gpg
+          sudp apt install -y dput
+
+      - name: Import GPG private key
+        run: |
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --yes --import
+          gpg --list-keys
+
       - name: Download ubuntu artifact
         uses: actions/download-artifact@v4
         with:
@@ -650,11 +661,6 @@ jobs:
 
       - name: List directory
         run: ls -al ${{ github.workspace }}
-
-      - name: Install dput
-        run: |
-          sudo apt update -y
-          sudo apt install -y dput
 
       - name: Publish to ppa
         run: |
