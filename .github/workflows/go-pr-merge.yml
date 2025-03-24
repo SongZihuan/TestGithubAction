@@ -244,10 +244,36 @@ jobs:
       # 配置 GPG 环境
       - name: Configure GPG
         run: |
+          mkdir ~/.gnupg
+          chmod 700 ~/.gnupg
+          
+          touch ~/.gnupg/gpg.conf
+          touch ~/.gnupg/gpg-agent.conf
+          
+          chmod 600 ~/.gnupg/gpg.conf
+          chmod 600 ~/.gnupg/gpg-agent.conf
+          
           echo "use-agent" >> ~/.gnupg/gpg.conf
           echo "pinentry-mode loopback" >> ~/.gnupg/gpg.conf
+          
           echo "allow-loopback-pinentry" >> ~/.gnupg/gpg-agent.conf
+          
           gpg-connect-agent reloadagent /bye
+
+      - name: Gpg-agent run check
+        run: |
+          if pgrep -x "gpg-agent" > /dev/null; then
+              echo "gpg-agent is already running."
+          else
+              echo "gpg-agent is not running. Starting it now..."
+              gpg-agent --daemon --sh --use-standard-socket >> $GITHUB_ENV
+              if pgrep -x "gpg-agent" > /dev/null; then
+                  echo "gpg-agent has been successfully started."
+              else
+                  echo "Failed to start gpg-agent."
+                  exit 1
+              fi
+          fi
 
       # 设置 GPG 密码
       - name: Set GPG passphrase
@@ -381,8 +407,14 @@ jobs:
         id: package
         run: |
           cat ${{ github.workspace }}/debian/rules
-          GPG_TTY='/dev/null' dpkg-buildpackage --sign-key="${{ secrets.GPG_KEY_ID }}"
+          DEB_BUILD_OPTIONS="parallel=4 nocheck" dpkg-buildpackage --no-sign
           echo "Architecture=$(cat ${{ env.FILE_ARCHITECTURE }})" >> $GITHUB_OUTPUT
+
+      - name: Sign file
+        run: |
+          export DEBSIGN_PASSPHRASE="${{ secrets.GPG_PASSPHRASE }}"
+          debsign -k"${{ secrets.GPG_KEY_ID }}" ../huan-go-test_1.101.0.dsc
+          debsign -k"${{ secrets.GPG_KEY_ID }}" ../huan-go-test_1.101.0_amd64.changes
 
       - name: List directory after package
         run: ls -al ${{ github.workspace }}/../
