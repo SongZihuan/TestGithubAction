@@ -225,6 +225,25 @@ jobs:
       COMPAT_DEFAULT: "10"
 
     steps:
+      - name: Turn on universe
+        run: |
+          if grep -rq "universe" /etc/apt/sources.list /etc/apt/sources.list.d/; then
+              echo "'universe' repository is already enabled."
+          else
+              echo "'universe' repository is not enabled. Enabling it now..."
+
+              # 启用 universe 源
+              sudo add-apt-repository universe -y
+
+              # 检查命令是否成功
+              if [ $? -eq 0 ]; then
+                  echo "'universe' repository has been successfully enabled."
+              else
+                  echo "Failed to enable 'universe' repository. Exiting..."
+                  exit 1
+              fi
+          fi
+
       - name: Set up dependencies
         run: |
           sudo apt update -y
