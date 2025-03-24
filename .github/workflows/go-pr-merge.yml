@@ -187,26 +187,76 @@ jobs:
         run: |
           echo "${{ secrets.GPG_KEY_ID }}" > ${{ github.workspace }}/${{ secrets.GPG_KEY_ID }}.gpg.key.id
 
+      - name: Make release body
+        run: |
+          echo "## 新版本 ${{ steps.tag_version.outputs.tag }} 正式发布 🚀🚀🚀" > ${{ github.workspace }}/release_body.md
+          echo "" >> ${{ github.workspace }}/release_body.md
+          echo "欢迎大家前来体验使用！" >> ${{ github.workspace }}/release_body.md
+          echo "" >> ${{ github.workspace }}/release_body.md
+          
+            echo "### GPG说明" > ${{ github.workspace }}/release_body.md
+            echo "" >> ${{ github.workspace }}/release_body.md
+            
+              echo "#### Linux上" >> ${{ github.workspace }}/release_body.md
+              echo "" >> ${{ github.workspace }}/release_body.md
+              echo "你可以通过 `GPG Key ID` 下载/安装我们的 `GPG` 证书，然后通过证书验证我们的文件！" >> ${{ github.workspace }}/release_body.md
+              echo "我们的 `GPG Key ID: ${{ secrets.GPG_KEY_ID }}` 。" >> ${{ github.workspace }}/release_body.md
+              echo "" >> ${{ github.workspace }}/release_body.md
+              
+                echo "##### 下载 GPG 证书" >> ${{ github.workspace }}/release_body.md
+                echo "" >> ${{ github.workspace }}/release_body.md
+                echo "你可以通过命令 `GPG` 进行操作，例如：`gpg --keyserver keyserver.ubuntu.com --recv-keys "${{ secrets.GPG_KEY_ID }}"`" >> ${{ github.workspace }}/release_body.md
+                echo "其中 `keyserver.ubuntu.com` 是 `GPG` 公开服务器，你也可以换用别的。" >> ${{ github.workspace }}/release_body.md
+                
+                echo "##### 安装 GPG 证书" >> ${{ github.workspace }}/release_body.md
+                echo "" >> ${{ github.workspace }}/release_body.md
+                echo "你只需要下载我们提供的 `gpg_public_key.asc` 然后执行，`gpg --import gpg_public_key.asc`" >> ${{ github.workspace }}/release_body.md
+              
+                echo "##### 验证文件" >> ${{ github.workspace }}/release_body.md
+                echo "由 `GPG` 生成的分离式签名由 `.sig` 结尾，可以通过 `gpg --verify xxx.sig xxx` 进行验证，其中 `xxx` 为需要验证的文件。" >> ${{ github.workspace }}/release_body.md
+                echo "" >> ${{ github.workspace }}/release_body.md
+                echo "由 `sha256sum` 计算的校验码以 `.sha256` 结尾。" >> ${{ github.workspace }}/release_body.md
+                echo "" >> ${{ github.workspace }}/release_body.md
+                echo "对于 `deb` 系列的打包文件，可以下载 `changes` 文件（该文件是gpg签名，但非分离式），然后执行 `gpg --verify xxx.changes` 即可验证真伪，同时打开 `changes` 文件便可查看其他文件（例如: .deb）的 `sha256` 编码，从而对他们进行认证。" >> ${{ github.workspace }}/release_body.md
+              
+              echo "#### Windows/MacOS上" >> ${{ github.workspace }}/release_body.md
+              echo "" >> ${{ github.workspace }}/release_body.md
+              echo "大部分操作的原来和Linux是相同的。`GPG` 方面的操作可以借助 `Kleopatra`。" >> ${{ github.workspace }}/release_body.md
+        
+            echo "### 版本说明 [#${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}](${{ github.event.pull_request.html_url }})" > ${{ github.workspace }}/release_body.md
+            echo "" >> ${{ github.workspace }}/release_body.md
+            echo "${{ github.event.pull_request.body }}" >> ${{ github.workspace }}/release_body.md
+
+          echo "## 最后" >> ${{ github.workspace }}/release_body.md
+          echo "" >> ${{ github.workspace }}/release_body.md
+          echo "感谢大家！" >> ${{ github.workspace }}/release_body.md
+          echo "$(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> ${{ github.workspace }}/release_body.md
+          echo "$(TZ='Asia/Shanghai' date +"%Y-%m-%d %H:%M:%S Asia/Shanghai")" >> ${{ github.workspace }}/release_body.md
+          echo "" >> ${{ github.workspace }}/release_body.md
+
       - name: Create github release
         id: create_release
-        uses: ncipollo/release-action@v1
+        uses: softprops/action-gh-release@v2
         with:
-          artifacts: "${{ github.workspace }}/gpg_public_key.asc,${{ github.workspace }}/${{ secrets.GPG_KEY_ID }}.gpg.key.id,${{ github.workspace }}/${{ env.OUTPUT_UBUNTU_NAME }},${{ github.workspace }}/${{ env.OUTPUT_REHL_NAME }}"
-          artifactErrorsFailBuild: true
-          allowUpdates: false
-          body: |
-            新版本 ${{ steps.tag_version.outputs.tag }} 发布啦，快来体验吧！
-            GPG Key: ${{ secrets.GPG_KEY_ID }} （可从服务器服务器下载公钥）。
-          generateReleaseNotes: true
-          makeLatest: "legacy"
-          tag: "${{ steps.tag_version.outputs.tag }} "
+          name: "👍 新版本 ${{ steps.tag_version.outputs.tag }} 发布啦 🚀🚀🚀"
+          tag: "${{ steps.tag_version.outputs.tag }}"
+          body_path: ${{ github.workspace }}/release_body.md
+          files: |
+            ${{ github.workspace }}/gpg_public_key.asc
+            ${{ github.workspace }}/${{ secrets.GPG_KEY_ID }}.gpg.key.id
+            ${{ github.workspace }}/${{ env.OUTPUT_UBUNTU_NAME }}
+            ${{ github.workspace }}/${{ env.OUTPUT_REHL_NAME }}
+          preserve_order: true
+          fail_on_unmatched_files: true
+          generate_release_notes: true
+          make_latest: "legacy"
 
       - name: Output the URL of the new release
         run: echo "The release is available at ${{ steps.create_release.outputs.html_url }}"
 
     outputs:
       tag: "${{ steps.tag_version.outputs.tag }}"
-      release: "${{ steps.create_release.outputs.html_url }}"
+      release: "${{ steps.create_release.outputs.url }}"
       upload_url: "${{ steps.create_release.outputs.upload_url }}"
 
   build_deb:
