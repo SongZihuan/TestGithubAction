@@ -189,12 +189,14 @@ jobs:
 
       - name: Make release body
         run: |
-          echo "## 新版本 ${{ steps.tag_version.outputs.tag }} 正式发布 🚀🚀🚀" > ${{ github.workspace }}/release_${{ steps.tag_version.outputs.tag }}_info.md
+          touch ${{ github.workspace }}/release_${{ steps.tag_version.outputs.tag }}_info.md
+          
+          echo "## 新版本 ${{ steps.tag_version.outputs.tag }} 正式发布 🚀🚀🚀" >> ${{ github.workspace }}/release_${{ steps.tag_version.outputs.tag }}_info.md
           echo "" >> ${{ github.workspace }}/release_${{ steps.tag_version.outputs.tag }}_info.md
           echo "欢迎大家前来体验使用！" >> ${{ github.workspace }}/release_${{ steps.tag_version.outputs.tag }}_info.md
           echo "" >> ${{ github.workspace }}/release_${{ steps.tag_version.outputs.tag }}_info.md
           
-            echo "### GPG说明" > ${{ github.workspace }}/release_${{ steps.tag_version.outputs.tag }}_info.md
+            echo "### GPG说明" >> ${{ github.workspace }}/release_${{ steps.tag_version.outputs.tag }}_info.md
             echo "" >> ${{ github.workspace }}/release_${{ steps.tag_version.outputs.tag }}_info.md
             
               echo "#### Linux上" >> ${{ github.workspace }}/release_${{ steps.tag_version.outputs.tag }}_info.md
@@ -223,7 +225,7 @@ jobs:
               echo "" >> ${{ github.workspace }}/release_${{ steps.tag_version.outputs.tag }}_info.md
               echo "大部分操作的原来和Linux是相同的。`GPG` 方面的操作可以借助 `Kleopatra`。" >> ${{ github.workspace }}/release_${{ steps.tag_version.outputs.tag }}_info.md
         
-            echo "### 版本说明 [#${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}](${{ github.event.pull_request.html_url }})" > ${{ github.workspace }}/release_${{ steps.tag_version.outputs.tag }}_info.md
+            echo "### 版本说明 [#${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}](${{ github.event.pull_request.html_url }})" >> ${{ github.workspace }}/release_${{ steps.tag_version.outputs.tag }}_info.md
             echo "" >> ${{ github.workspace }}/release_${{ steps.tag_version.outputs.tag }}_info.md
             echo "${{ github.event.pull_request.body }}" >> ${{ github.workspace }}/release_${{ steps.tag_version.outputs.tag }}_info.md
 
