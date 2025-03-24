@@ -264,7 +264,7 @@ jobs:
 
     outputs:
       tag: "${{ steps.tag_version.outputs.tag }}"
-      version: $(echo "${{ steps.tag_version.outputs.tag }}" | sed 's/^v//')
+      version: "${{ steps.tag_version.outputs.version }}"
       release: "${{ steps.create_release.outputs.url }}"
       upload_url: "${{ steps.create_release.outputs.upload_url }}"
 
