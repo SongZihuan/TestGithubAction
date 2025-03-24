@@ -251,7 +251,7 @@ jobs:
           sudo apt install -y dpkg-dev
           sudo apt install -y devscripts
           sudo apt install -y debhelper
-          sudo apt install -y dpkg-sig
+          sudo apt install -y debdelta
           sudo apt install -y fakeroot
           sudo apt install -y gnupg
 
