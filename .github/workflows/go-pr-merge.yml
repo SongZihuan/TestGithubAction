@@ -421,7 +421,6 @@ jobs:
         run: |
           cat ${{ github.workspace }}/debian/rules
           DEB_BUILD_OPTIONS="parallel=4 nocheck" dpkg-buildpackage -k"${{ secrets.GPG_KEY_ID }}"
-          dpkg-sig --sign builder ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}_${{ steps.package.outputs.Architecture }}.deb
           echo "Architecture=$(cat ${{ env.FILE_ARCHITECTURE }})" >> $GITHUB_OUTPUT
 
       - name: Sign package
@@ -549,9 +548,9 @@ jobs:
           name: ${{ env.PACKAGE_FILE_NAME_DEB }}
           path: ${{ github.workspace }}
 
-      - name: Get file md5
+      - name: Get file sha256
         run: |
-          echo "$(md5sum ${{ github.workspace }}/${{ needs.build_deb.outputs.PACKAGE_NAME }}_${{ needs.build_deb.outputs.VERSION }}_${{ needs.build_deb.outputs.ARCHITECTURE }}.deb | awk '{print $1}')" > ${{ github.workspace }}/${{ needs.build_deb.outputs.PACKAGE_NAME }}_${{ needs.build_deb.outputs.VERSION }}_${{ needs.build_deb.outputs.ARCHITECTURE }}.deb.md5
+          echo "$(sha256sum ${{ github.workspace }}/${{ needs.build_deb.outputs.PACKAGE_NAME }}_${{ needs.build_deb.outputs.VERSION }}_${{ needs.build_deb.outputs.ARCHITECTURE }}.deb | awk '{print $1}')" > ${{ github.workspace }}/${{ needs.build_deb.outputs.PACKAGE_NAME }}_${{ needs.build_deb.outputs.VERSION }}_${{ needs.build_deb.outputs.ARCHITECTURE }}.deb.sha256
 
       - name: Write public key
         run: |
@@ -567,8 +566,8 @@ jobs:
             ${{ github.workspace }}/LICENSE
             
             ${{ github.workspace }}/${{ needs.build_deb.outputs.PACKAGE_NAME }}_${{ needs.build_deb.outputs.VERSION }}_${{ needs.build_deb.outputs.ARCHITECTURE }}.deb
-            ${{ github.workspace }}/${{ needs.build_deb.outputs.PACKAGE_NAME }}_${{ needs.build_deb.outputs.VERSION }}_${{ needs.build_deb.outputs.ARCHITECTURE }}.deb.sig
             ${{ github.workspace }}/${{ needs.build_deb.outputs.PACKAGE_NAME }}_${{ needs.build_deb.outputs.VERSION }}_${{ needs.build_deb.outputs.ARCHITECTURE }}.changes
-            ${{ github.workspace }}/${{ needs.build_deb.outputs.PACKAGE_NAME }}_${{ needs.build_deb.outputs.VERSION }}_${{ needs.build_deb.outputs.ARCHITECTURE }}.deb.md5
+            ${{ github.workspace }}/${{ needs.build_deb.outputs.PACKAGE_NAME }}_${{ needs.build_deb.outputs.VERSION }}_${{ needs.build_deb.outputs.ARCHITECTURE }}.deb.sig
+            ${{ github.workspace }}/${{ needs.build_deb.outputs.PACKAGE_NAME }}_${{ needs.build_deb.outputs.VERSION }}_${{ needs.build_deb.outputs.ARCHITECTURE }}.deb.sha256
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # 自动提供的 GitHub Token
