@@ -652,6 +652,9 @@ jobs:
           name: ${{ env.OUTPUT_UBUNTU_NAME }}
           path: ${{ github.workspace }}
 
+      - name: List directory
+        run: ls -al ${{ github.workspace }}
+
       - name: Install dput
         run: |
           sudo apt update -y
@@ -659,4 +662,4 @@ jobs:
 
       - name: Publish to ppa
         run: |
-          dput ppa:${{ secrets.PPA_NAME }}/${{ env.PACKAGE_NAME }} ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.create_release.outputs.version }}_${{ needs.build_deb.outputs.architecture }}.changes
+          dput ppa:${{ secrets.PPA_NAME }} ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.create_release.outputs.version }}_${{ needs.build_deb.outputs.architecture }}.changes
