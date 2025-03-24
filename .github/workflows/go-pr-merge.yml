@@ -181,7 +181,7 @@ jobs:
 
       - name: Write gpg public key
         run: |
-          echo "${{ secrets.GPG_PUBLIC_KEY }}" > ${{ github.workspace }}/${{ needs.build_deb.outputs.PACKAGE_NAME }}_GPG_PUBLIC.asc
+          echo "${{ secrets.GPG_PUBLIC_KEY }}" > ${{ github.workspace }}/gpg_public_key.asc
 
       - name: Write gpg key id
         run: |
@@ -191,7 +191,7 @@ jobs:
         id: create_release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "${{ github.workspace }}/${{ needs.build_deb.outputs.PACKAGE_NAME }}_gpg_public.asc,${{ github.workspace }}/${{ secrets.GPG_KEY_ID }}.gpg.key.id${{ github.workspace }}/${{ env.OUTPUT_UBUNTU_NAME }},${{ github.workspace }}/${{ env.OUTPUT_REHL_NAME }}"
+          artifacts: "${{ github.workspace }}/gpg_public_key.asc,${{ github.workspace }}/${{ secrets.GPG_KEY_ID }}.gpg.key.id,${{ github.workspace }}/${{ env.OUTPUT_UBUNTU_NAME }},${{ github.workspace }}/${{ env.OUTPUT_REHL_NAME }}"
           artifactErrorsFailBuild: true
           allowUpdates: false
           body: |
