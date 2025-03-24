@@ -450,11 +450,13 @@ jobs:
           
           echo "Package: ${{ env.PACKAGE_NAME }}" >> ${{ github.workspace }}/debian/control
           echo "Architecture: $(cat ${{ github.workspace }}/${{ env.FILE_ARCHITECTURE }})" >> ${{ github.workspace }}/debian/control
+          echo "Section: $(cat ${{ github.workspace }}/${{ env.FILE_SECTION }})" >> ${{ github.workspace }}/debian/control
+          echo "Priority: $(cat ${{ github.workspace }}/${{ env.FILE_PRIORITY }})" >> ${{ github.workspace }}/debian/control
           if [ -f "${{ github.workspace }}/${{ env.FILE_DEPENDS }}" ]; then
             echo "Depends: $(cat ${{ github.workspace }}/${{ env.FILE_DEPENDS }})" >> ${{ github.workspace }}/debian/control
           fi        
           echo "Description: $(cat ${{ github.workspace }}/${{ env.FILE_DESCRIBE }})" >> ${{ github.workspace }}/debian/control
-          echo "Package: VERSION" >> ${{ github.workspace }}/debian/control
+          echo "Version: $VERSION" >> ${{ github.workspace }}/debian/control
           
           cat ${{ github.workspace }}/debian/control
           
