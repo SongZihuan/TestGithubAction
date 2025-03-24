@@ -251,7 +251,6 @@ jobs:
           sudo apt install -y dpkg-dev
           sudo apt install -y devscripts
           sudo apt install -y debhelper
-          sudo apt install -y debdelta
           sudo apt install -y fakeroot
           sudo apt install -y gnupg
 
@@ -425,6 +424,12 @@ jobs:
           dpkg-sig --sign builder ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}_${{ steps.package.outputs.Architecture }}.deb
           echo "Architecture=$(cat ${{ env.FILE_ARCHITECTURE }})" >> $GITHUB_OUTPUT
 
+      - name: Sign package
+        run: |
+          cd ${{ github.workspace }}/..
+          gpg --batch --yes --passphrase-fd 0 --pinentry-mode loopback --detach-sign ./${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}_${{ steps.package.outputs.Architecture }}.deb
+          cd -
+
       - name: List directory after package
         run: ls -al ${{ github.workspace }}/../
 
@@ -434,6 +439,7 @@ jobs:
           
           cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}.dsc ${{ github.workspace }}/temp
           cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}_${{ steps.package.outputs.Architecture }}.deb ${{ github.workspace }}/temp
+          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}_${{ steps.package.outputs.Architecture }}.deb.sig ${{ github.workspace }}/temp
           cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}_${{ steps.package.outputs.Architecture }}.buildinfo ${{ github.workspace }}/temp
           cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}_${{ steps.package.outputs.Architecture }}.changes ${{ github.workspace }}/temp
 
@@ -444,6 +450,7 @@ jobs:
           path: |
             ${{ github.workspace }}/temp/${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}.dsc
             ${{ github.workspace }}/temp/${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}_${{ steps.package.outputs.Architecture }}.deb
+            ${{ github.workspace }}/temp/${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}_${{ steps.package.outputs.Architecture }}.deb.sig
             ${{ github.workspace }}/temp/${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}_${{ steps.package.outputs.Architecture }}.buildinfo
             ${{ github.workspace }}/temp/${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}_${{ steps.package.outputs.Architecture }}.changes
           if-no-files-found: error
@@ -533,6 +540,9 @@ jobs:
       - build_deb
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Download package dev artifact
         uses: actions/download-artifact@v4
         with:
@@ -542,13 +552,22 @@ jobs:
       - name: Get file md5
         run: |
           echo "$(md5sum ${{ github.workspace }}/${{ needs.build_deb.outputs.PACKAGE_NAME }}_${{ needs.build_deb.outputs.VERSION }}_${{ needs.build_deb.outputs.ARCHITECTURE }}.deb | awk '{print $1}')" > ${{ github.workspace }}/${{ needs.build_deb.outputs.PACKAGE_NAME }}_${{ needs.build_deb.outputs.VERSION }}_${{ needs.build_deb.outputs.ARCHITECTURE }}.deb.md5
-          
+
+      - name: Write public key
+        run: |
+          echo "${{ secrets.GPG_PUBLIC_KEY }}" > ${{ github.workspace }}/${{ needs.build_deb.outputs.PACKAGE_NAME }}_GPG_PUBLIC.asc
+
       - name: Upload release asset
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ needs.create_release.outputs.tag }}
           files: |
+            ${{ github.workspace }}/${{ needs.build_deb.outputs.PACKAGE_NAME }}_GPG_PUBLIC.asc
+            ${{ github.workspace }}/README.md
+            ${{ github.workspace }}/LICENSE
+            
             ${{ github.workspace }}/${{ needs.build_deb.outputs.PACKAGE_NAME }}_${{ needs.build_deb.outputs.VERSION }}_${{ needs.build_deb.outputs.ARCHITECTURE }}.deb
+            ${{ github.workspace }}/${{ needs.build_deb.outputs.PACKAGE_NAME }}_${{ needs.build_deb.outputs.VERSION }}_${{ needs.build_deb.outputs.ARCHITECTURE }}.deb.sig
             ${{ github.workspace }}/${{ needs.build_deb.outputs.PACKAGE_NAME }}_${{ needs.build_deb.outputs.VERSION }}_${{ needs.build_deb.outputs.ARCHITECTURE }}.changes
             ${{ github.workspace }}/${{ needs.build_deb.outputs.PACKAGE_NAME }}_${{ needs.build_deb.outputs.VERSION }}_${{ needs.build_deb.outputs.ARCHITECTURE }}.deb.md5
         env:
