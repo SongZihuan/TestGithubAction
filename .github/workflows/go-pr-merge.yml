@@ -638,7 +638,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # 自动提供的 GitHub Token
 
-  publish_package_deb:
+  publish_to_ppa:
     runs-on: ubuntu-latest
     needs:
       - create_release
@@ -646,30 +646,17 @@ jobs:
       - upload_package_deb
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Download ubuntu artifact
         uses: actions/download-artifact@v4
         with:
           name: ${{ env.OUTPUT_UBUNTU_NAME }}
           path: ${{ github.workspace }}
 
-      - name: Login to GitHub Packages
+      - name: Install dput
         run: |
-          echo "${{ secrets.PACKAGE_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          sudo apt update -y
+          sudo apt install -y dput
 
-      # 上传 .deb 包到 GitHub Packages
-      - name: Upload Debian package to GitHub Packages
+      - name: Publish to ppa
         run: |
-          curl -X POST \
-            -H "Authorization: Bearer ${{ secrets.PACKAGE_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            --data '{"package_type":"debian","name":"${{ env.PACKAGE_NAME }}","version":"${{ needs.create_release.outputs.version }}"}' \
-            https://api.github.com/user/packages
-      
-          curl -X PUT \
-            -H "Authorization: Bearer ${{ secrets.PACKAGE_TOKEN }}" \
-            -H "Content-Type: application/octet-stream" \
-            --data-binary @${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.create_release.outputs.version }}_${{ needs.build_deb.outputs.architecture }}.deb \
-            https://api.github.com/user/packages/debian/${{ env.PACKAGE_NAME }}/versions/${{ needs.create_release.outputs.version }}/files/${{ env.PACKAGE_NAME }}.deb
+          dput ppa:${{ secrets.PPA_NAME }}/${{ env.PACKAGE_NAME }} ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.create_release.outputs.version }}_${{ needs.build_deb.outputs.architecture }}.changes
