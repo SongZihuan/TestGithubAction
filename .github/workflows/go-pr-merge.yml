@@ -649,7 +649,7 @@ jobs:
       - name: Download ubuntu artifact
         uses: actions/download-artifact@v4
         with:
-          name: ${{ env.OUTPUT_UBUNTU_NAME }}
+          name: ${{ env.PACKAGE_FILE_NAME_DEB }}
           path: ${{ github.workspace }}
 
       - name: List directory
