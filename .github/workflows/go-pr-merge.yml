@@ -646,7 +646,7 @@ jobs:
         run: |
           sudo apt update -y
           sudo apt install -y gpg
-          sudp apt install -y dput
+          sudo apt install -y dput
 
       - name: Import GPG private key
         run: |
