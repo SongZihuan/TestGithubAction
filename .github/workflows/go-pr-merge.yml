@@ -235,12 +235,6 @@ jobs:
           sudo apt-get install -y fakeroot
           sudo apt-get install -y gnupg
 
-      # 导入 GPG 私钥
-      - name: Import GPG private key
-        run: |
-          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --import
-          gpg --list-keys
-
       # 配置 GPG 环境
       - name: Configure GPG
         run: |
@@ -259,6 +253,11 @@ jobs:
           echo "allow-loopback-pinentry" >> ~/.gnupg/gpg-agent.conf
           
           gpg-connect-agent reloadagent /bye
+
+      - name: Import GPG private key
+        run: |
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --import
+          gpg --list-keys
 
       - name: Gpg-agent run check
         run: |
