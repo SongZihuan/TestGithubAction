@@ -604,16 +604,13 @@ jobs:
       maintainer: ${{ steps.before-package.outputs.maintainer }}
       describe: ${{ steps.before-package.outputs.describe }}
 
-  upload_package_deb:
+  publish_deb_to_release:
     runs-on: ubuntu-latest
     needs:
       - create_release
       - build_deb
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Download package dev artifact
         uses: actions/download-artifact@v4
         with:
@@ -638,12 +635,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # 自动提供的 GitHub Token
 
-  publish_to_ppa:
+  publish_deb_to_ppa:
     runs-on: ubuntu-latest
     needs:
       - create_release
       - build_deb
-      - upload_package_deb
 
     steps:
       - name: Download ubuntu artifact
