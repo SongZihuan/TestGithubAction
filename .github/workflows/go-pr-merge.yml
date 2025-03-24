@@ -256,7 +256,7 @@ jobs:
 
       - name: Import GPG private key
         run: |
-          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --import
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --yes --import
           gpg --list-keys
 
       - name: Gpg-agent run check
@@ -273,11 +273,6 @@ jobs:
                   exit 1
               fi
           fi
-
-      # 设置 GPG 密码
-      - name: Set GPG passphrase
-        run: |
-          echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --batch --yes --passphrase-fd 0 --pinentry-mode loopback --quick-sign-key ${{ secrets.GPG_KEY_ID }}
 
       - name: Checkout code
         uses: actions/checkout@v4
@@ -406,14 +401,9 @@ jobs:
         id: package
         run: |
           cat ${{ github.workspace }}/debian/rules
-          DEB_BUILD_OPTIONS="parallel=4 nocheck" dpkg-buildpackage --no-sign
+          DEB_BUILD_OPTIONS="parallel=4 nocheck" dpkg-buildpackage -k"${{ secrets.GPG_KEY_ID }}"
+          dpkg-sig --sign builder ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.VERSION }}_${{ steps.package.outputs.Architecture }}.deb
           echo "Architecture=$(cat ${{ env.FILE_ARCHITECTURE }})" >> $GITHUB_OUTPUT
-
-      - name: Sign file
-        run: |
-          export DEBSIGN_PASSPHRASE="${{ secrets.GPG_PASSPHRASE }}"
-          debsign -k"${{ secrets.GPG_KEY_ID }}" ../huan-go-test_1.101.0.dsc
-          debsign -k"${{ secrets.GPG_KEY_ID }}" ../huan-go-test_1.101.0_amd64.changes
 
       - name: List directory after package
         run: ls -al ${{ github.workspace }}/../
@@ -539,6 +529,7 @@ jobs:
           tag_name: ${{ needs.create_release.outputs.tag }}
           files: |
             ${{ github.workspace }}/${{ needs.build_deb.outputs.PACKAGE_NAME }}_${{ needs.build_deb.outputs.VERSION }}_${{ needs.build_deb.outputs.ARCHITECTURE }}.deb
+            ${{ github.workspace }}/${{ needs.build_deb.outputs.PACKAGE_NAME }}_${{ needs.build_deb.outputs.VERSION }}_${{ needs.build_deb.outputs.ARCHITECTURE }}.changes
             ${{ github.workspace }}/${{ needs.build_deb.outputs.PACKAGE_NAME }}_${{ needs.build_deb.outputs.VERSION }}_${{ needs.build_deb.outputs.ARCHITECTURE }}.deb.md5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # 自动提供的 GitHub Token
