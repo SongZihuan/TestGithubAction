@@ -27,6 +27,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for all branches and tags
+          fetch-tags: true
+
+      - name: Fetch all tags
+        run: git fetch --tags
 
       - name: Get default branch
         id: get_branch
@@ -42,8 +48,86 @@ jobs:
             exit 1
           fi
 
+      - name: Check for specific label
+        id: check-label
+        run: |
+          BUG_LABEL="false"
+          FETURE_LABEL="false"
+          
+          for label in "${{ toJson(github.event.pull_request.labels) }}"; do
+            if [[ "$label" == "bug" ]]; then
+              BUG_LABEL="true"
+              FETURE_LABEL="false"
+              break
+            elif [[ "$label" == "feature" || "$label" == "enhancement" ]]; then
+              if [[ "$BUG_LABEL" == "true" ]]; then
+                BUG_LABEL="true"
+                FETURE_LABEL="false"
+              else
+                BUG_LABEL="false"
+                FETURE_LABEL="true"
+              fi
+          
+              break
+            fi
+          done
+          
+          echo "BUG_PR=$BUG_LABEL" >> $GITHUB_OUTPUT
+          echo "FEATURE_PR=$FETURE_LABEL" >> $GITHUB_OUTPUT
+
+      - name: Get new tag and version
+        id: get_tag_version
+        run: |
+          if [ -f ${{ github.workspace }}/${{ env.VERSION_FILE }} ]; then
+            if git tag --list | grep -q "^$(cat ${{ env.VERSION_FILE }})$"; then
+              echo "Warning: VERSION file was be found but hasn't been use."
+          
+              if [[ -n $(git tag --sort=-creatordate | grep -i '^v'  | head -1) ]]; then
+                if [[ ${{ steps.check-label.outputs.BUG_PR }} == "true" ]]; then
+                  tag=$(git tag --sort=-creatordate | grep -i '^v'  | head -1 | awk -F. '{print $1"."$2"."$3+1}')
+                elif [[ ${{ steps.check-label.outputs.FEATURE_PR }} == "true" ]]; then
+                  tag=$(git tag --sort=-creatordate | grep -i '^v'  | head -1 | awk -F. '{print $1+1".0.0"}')
+                else
+                  tag=$(git tag --sort=-creatordate | grep -i '^v'  | head -1 | awk -F. '{print $1"."$2+1".0"}')
+                fi
+                echo "tag=$tag" >> $GITHUB_OUTPUT
+                echo "version=$(echo $tag | sed 's/^v//')" >> $GITHUB_OUTPUT
+                echo "Auto Version is $tag"
+              else
+                echo "tag=v0.1.0" >> $GITHUB_OUTPUT
+                echo "version=0.1.0" >> $GITHUB_OUTPUT
+                echo "First Version is v0.1.0"
+              fi
+            else
+              echo "tag=$(cat ${{ env.VERSION_FILE }})" >> $GITHUB_OUTPUT
+              echo "version=$(echo $tag | sed 's/^v//')" >> $GITHUB_OUTPUT
+              echo "File Version is $(cat ${{ env.VERSION_FILE }})"
+            fi
+          else
+            echo "VERSION file not found."
+      
+            if [[ -n $(git tag --sort=-creatordate | grep -i '^v'  | head -1) ]]; then
+              if [[ -n $(git tag --sort=-creatordate | grep -i '^v'  | head -1) ]]; then
+                if [[ ${{ steps.check-label.outputs.BUG_PR }} == "true" ]]; then
+                  tag=$(git tag --sort=-creatordate | grep -i '^v'  | head -1 | awk -F. '{print $1"."$2"."$3+1}')
+                elif [[ ${{ steps.check-label.outputs.FEATURE_PR }} == "true" ]]; then
+                  tag=$(git tag --sort=-creatordate | grep -i '^v'  | head -1 | awk -F. '{print $1+1".0.0"}')
+                else
+                  tag=$(git tag --sort=-creatordate | grep -i '^v'  | head -1 | awk -F. '{print $1"."$2+1".0"}')
+                fi
+                echo "tag=$tag" >> $GITHUB_OUTPUT
+                echo "version=$(echo $tag | sed 's/^v//')" >> $GITHUB_OUTPUT
+                echo "Auto Version is $tag"
+            else
+                echo "tag=v0.1.0" >> $GITHUB_OUTPUT
+                echo "version=0.1.0" >> $GITHUB_OUTPUT
+                echo "First Version is v0.1.0"
+            fi
+          fi
     outputs:
       branch: ${{ steps.get_branch.outputs.branch }}
+      tag: "${{ steps.get_tag_version.outputs.tag }}"
+      version: "${{ steps.get_tag_version.outputs.version }}"
 
   build-ubuntu:
     runs-on: ubuntu-latest
@@ -110,67 +194,10 @@ jobs:
           path: ${{ github.workspace }}/${{ env.OUTPUT_REHL_NAME }}
           if-no-files-found: error
 
-  get-tag-version:
-    runs-on: ubuntu-latest
-    needs:
-      - ready
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Fetch all history for all branches and tags
-          fetch-tags: true
-
-      - name: Fetch all tags
-        run: git fetch --tags
-
-      - name: Get new tag and version
-        id: get_tag_version
-        run: |
-          if [ -f ${{ github.workspace }}/${{ env.VERSION_FILE }} ]; then
-            echo "VERSION file found."
-
-            if git tag --list | grep -q "^$(cat ${{ env.VERSION_FILE }})$"; then
-              if [[ -n $(git tag --sort=-creatordate | grep -i '^v'  | head -1) ]]; then
-                tag=$(git tag --sort=-creatordate | grep -i '^v'  | head -1 | awk -F. '{print $1"."$2+1".0"}')
-                echo "tag=$tag" >> $GITHUB_OUTPUT
-                echo "version=$(echo $tag | sed 's/^v//')" >> $GITHUB_OUTPUT
-                echo "Auto Version is $tag"
-              else
-                echo "tag=v0.1.0" >> $GITHUB_OUTPUT
-                echo "version=0.1.0" >> $GITHUB_OUTPUT
-                echo "First Version is v0.1.0"
-              fi
-            else
-              echo "tag=$(cat ${{ env.VERSION_FILE }})" >> $GITHUB_OUTPUT
-              echo "version=$(echo $tag | sed 's/^v//')" >> $GITHUB_OUTPUT
-              echo "File Version is $(cat ${{ env.VERSION_FILE }})"
-            fi
-          else
-            echo "VERSION file not found."
-
-            if [[ -n $(git tag --sort=-creatordate | grep -i '^v'  | head -1) ]]; then
-              tag=$(git tag --sort=-creatordate | grep -i '^v'  | head -1 | awk -F. '{print $1"."$2+1".0"}')
-              echo "tag=$tag" >> $GITHUB_OUTPUT
-              echo "version=$(echo $tag | sed 's/^v//')" >> $GITHUB_OUTPUT
-              echo "Auto (Not File) Version is $tag"
-            else
-                echo "tag=v0.1.0" >> $GITHUB_OUTPUT
-                echo "version=0.1.0" >> $GITHUB_OUTPUT
-                echo "First Version is v0.1.0"
-            fi
-          fi
-
-    outputs:
-      tag: "${{ steps.get_tag_version.outputs.tag }}"
-      version: "${{ steps.get_tag_version.outputs.version }}"
-
   build-deb:
     runs-on: ubuntu-latest
     needs:
       - ready
-      - get-tag-version
       - build-ubuntu
 
     env:
@@ -337,7 +364,7 @@ jobs:
             echo "Depends: $(cat ${{ github.workspace }}/${{ env.FILE_DEPENDS }})" >> ${{ github.workspace }}/debian/control
           fi        
           echo "Description: $(cat ${{ github.workspace }}/${{ env.FILE_DESCRIBE }})" >> ${{ github.workspace }}/debian/control
-          echo "Version: ${{ needs.get-tag-version.outputs.version }}" >> ${{ github.workspace }}/debian/control
+          echo "Version: ${{ needs.ready.outputs.version }}" >> ${{ github.workspace }}/debian/control
           
           cat ${{ github.workspace }}/debian/control
           
@@ -349,7 +376,7 @@ jobs:
           if [ ! -f "${{ github.workspace }}/debian/changelog" ]; then
             EDITOR="/bin/true" VISUAL="/bin/true" DEBFULLNAME="$(git show -s --format='%an' $(git rev-list --max-parents=0 HEAD))" DEBEMAIL="$(git show -s --format='%ae' $(git rev-list --max-parents=0 HEAD))" dch --create --package ${{ env.PACKAGE_NAME }} --force-distribution --distribution=all --newversion 0.1.0 "Initial release"
           else
-            EDITOR="/bin/true" VISUAL="/bin/true" DEBFULLNAME="$(git show -s --format='%an' $(git rev-list --max-parents=0 HEAD))" DEBEMAIL="$(git show -s --format='%ae' $(git rev-list --max-parents=0 HEAD))" gbp dch --auto --git-author --release --ignore-branch --force-distribution --distribution=all --new-version ${{ needs.get-tag-version.outputs.version }}
+            EDITOR="/bin/true" VISUAL="/bin/true" DEBFULLNAME="$(git show -s --format='%an' $(git rev-list --max-parents=0 HEAD))" DEBEMAIL="$(git show -s --format='%ae' $(git rev-list --max-parents=0 HEAD))" gbp dch --auto --git-author --release --ignore-branch --force-distribution --distribution=all --new-version ${{ needs.ready.outputs.version }}
           fi 
           
           sudo chmod a+x "${{ github.workspace }}/${{ env.OUTPUT_UBUNTU_NAME }}"
@@ -378,13 +405,13 @@ jobs:
       - name: Sign package
         run: |
           cd ${{ github.workspace }}/..
-          gpg --batch --yes --passphrase-fd 0 --pinentry-mode loopback --detach-sign ./${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb
+          gpg --batch --yes --passphrase-fd 0 --pinentry-mode loopback --detach-sign ./${{ env.PACKAGE_NAME }}_${{ needs.ready.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb
           cd -
 
       - name: Get sha256
         run: |
           cd ${{ github.workspace }}/..
-          echo "$(sha256sum ./${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb | awk '{print $1}')" > ./${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb.sha256
+          echo "$(sha256sum ./${{ env.PACKAGE_NAME }}_${{ needs.ready.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb | awk '{print $1}')" > ./${{ env.PACKAGE_NAME }}_${{ needs.ready.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb.sha256
           cd -
 
       - name: List directory after package
@@ -392,27 +419,30 @@ jobs:
 
       - name: Temporary copy file
         run: |
-          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb ${{ steps.create_temp.outputs.temp }}
-          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb.sig ${{ steps.create_temp.outputs.temp }}
-          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb.sha256 ${{ steps.create_temp.outputs.temp }}
-          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ steps.before_package.outputs.architecture }}.buildinfo ${{ steps.create_temp.outputs.temp }}
-          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ steps.before_package.outputs.architecture }}.changes ${{ steps.create_temp.outputs.temp }}
+          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ needs.ready.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb ${{ steps.create_temp.outputs.temp }}
+          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ needs.ready.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb.sig ${{ steps.create_temp.outputs.temp }}
+          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ needs.ready.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb.sha256 ${{ steps.create_temp.outputs.temp }}
+          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ needs.ready.outputs.version }}_${{ steps.before_package.outputs.architecture }}.buildinfo ${{ steps.create_temp.outputs.temp }}
+          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ needs.ready.outputs.version }}_${{ steps.before_package.outputs.architecture }}.changes ${{ steps.create_temp.outputs.temp }}
 
       - name: Upload deb artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.PACKAGE_FILE_NAME_DEB }}
           path: |
-            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb
-            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb.sig
-            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb.sha256
-            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ steps.before_package.outputs.architecture }}.buildinfo
-            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ steps.before_package.outputs.architecture }}.changes
+            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ needs.ready.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb
+            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ needs.ready.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb.sig
+            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ needs.ready.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb.sha256
+            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ needs.ready.outputs.version }}_${{ steps.before_package.outputs.architecture }}.buildinfo
+            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ needs.ready.outputs.version }}_${{ steps.before_package.outputs.architecture }}.changes
           if-no-files-found: error
           retention-days: 90
 
       - name: Save changelog
         run: cp ${{ github.workspace }}/debian/changelog ${{ steps.create_temp.outputs.temp }}/changelog
+
+      - name: Save version
+        run: echo ${{ needs.ready.outputs.version }} > ${{ steps.create_temp.outputs.temp }}/VERSION
 
       - name: Git set config
         run: |
@@ -438,17 +468,21 @@ jobs:
       - name: Write changelog to git
         run: cp -f ${{ steps.create_temp.outputs.temp }}/changelog ${{ github.workspace }}/debian/changelog
 
+      - name: Write version to git
+        run: cp -f ${{ steps.create_temp.outputs.temp }}/VERSION ${{ github.workspace }}/VERSION
+
       - name: Push debian/changelog
         run: |
           git add ${{ github.workspace }}/debian/changelog
-          EDITOR="/bin/true" VISUAL="/bin/true" git commit -m "Update debian/changelog for ${{ needs.get-tag-version.outputs.tag }}"
+          git add ${{ github.workspace }}/VERSION
+          EDITOR="/bin/true" VISUAL="/bin/true" git commit -m "更新 debian/changelog文件，以及版本号-${{ needs.ready.outputs.tag }}。"
           git push -f origin HEAD:${{ env.CHANGE_LOG_DEB_BRANCH }}
 
       - name: Create or get pull request
         id: create_pr
         run: |
           if [[ -z $(gh pr list --state open --head ${{ env.CHANGE_LOG_DEB_BRANCH }} --base ${{ needs.ready.outputs.branch }}) ]]; then
-            gh pr create --title "Update debian/changelog" --body "This is an automated PR requesting a merge into debian/changelog. Created by github workflow." --base ${{ needs.ready.outputs.branch }} --head ${{ env.CHANGE_LOG_DEB_BRANCH }}
+            gh pr create --title "更新 deb 打包的相关关系" --body "更新 debian\changlog 文件和 VERSION 文件。关联PR：#${{ github.event.pull_request.number }}。" --base ${{ needs.ready.outputs.branch }} --head ${{ env.CHANGE_LOG_DEB_BRANCH }}
             echo "merge=true" >> $GITHUB_OUTPUT
             echo "New pull request"
           else
@@ -486,9 +520,7 @@ jobs:
   publish-deb-to-release:
     runs-on: ubuntu-latest
     needs:
-      - get-tag-version
       - build-deb
-
     permissions: write-all
 
     steps:
@@ -578,15 +610,15 @@ jobs:
 
       - name: Push tag to github
         run: |
-          git tag ${{ needs.get-tag-version.outputs.tag }}
-          git push origin "${{ needs.get-tag-version.outputs.tag }}"
+          git tag ${{ needs.ready.outputs.tag }}
+          git push origin "${{ needs.ready.outputs.tag }}"
 
       - name: Create github release
         id: create_release
         uses: softprops/action-gh-release@v2
         with:
-          name: " 🚀🚀🚀新版本 ${{ needs.get-tag-version.outputs.tag }} 发布啦 👍"
-          tag_name: "${{ needs.get-tag-version.outputs.tag }}"
+          name: " 🚀🚀🚀新版本 ${{ needs.ready.outputs.tag }} 发布啦 👍"
+          tag_name: "${{ needs.ready.outputs.tag }}"
           body_path: ${{ github.workspace }}/release_${{ steps.create_temp.outputs.temp }}_info.md
           files: |
             ${{ github.workspace }}/release_${{ steps.create_temp.outputs.temp }}_info.md
@@ -594,10 +626,10 @@ jobs:
             ${{ github.workspace }}/${{ secrets.GPG_KEY_ID }}.gpg.key.id
             ${{ github.workspace }}/${{ env.OUTPUT_UBUNTU_NAME }}
             ${{ github.workspace }}/${{ env.OUTPUT_REHL_NAME }}
-            ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ needs.build-deb.outputs.architecture }}.deb
-            ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ needs.build-deb.outputs.architecture }}.changes
-            ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ needs.build-deb.outputs.architecture }}.deb.sig
-            ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ needs.build-deb.outputs.architecture }}.deb.sha256
+            ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.ready.outputs.version }}_${{ needs.build-deb.outputs.architecture }}.deb
+            ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.ready.outputs.version }}_${{ needs.build-deb.outputs.architecture }}.changes
+            ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.ready.outputs.version }}_${{ needs.build-deb.outputs.architecture }}.deb.sig
+            ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.ready.outputs.version }}_${{ needs.build-deb.outputs.architecture }}.deb.sha256
           preserve_order: true
           fail_on_unmatched_files: true
           generate_release_notes: true
