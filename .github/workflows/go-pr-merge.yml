@@ -351,7 +351,7 @@ jobs:
           if [ ! -f "${{ github.workspace }}/debian/changelog" ]; then
             EDITOR="/bin/true" VISUAL="/bin/true" DEBFULLNAME="$(git show -s --format='%an' $(git rev-list --max-parents=0 HEAD))" DEBEMAIL="$(git show -s --format='%ae' $(git rev-list --max-parents=0 HEAD))" dch --create --package ${{ env.PACKAGE_NAME }} --newversion 0.1.0 "Initial release"
           else
-            EDITOR="/bin/true" VISUAL="/bin/true" DEBFULLNAME="$(git show -s --format='%an' $(git rev-list --max-parents=0 HEAD))" DEBEMAIL="$(git show -s --format='%ae' $(git rev-list --max-parents=0 HEAD))" gbp dch --auto --git-author --release --newversion ${VERSION}
+            EDITOR="/bin/true" VISUAL="/bin/true" DEBFULLNAME="$(git show -s --format='%an' $(git rev-list --max-parents=0 HEAD))" DEBEMAIL="$(git show -s --format='%ae' $(git rev-list --max-parents=0 HEAD))" gbp dch --auto --git-author --release --new-version ${VERSION}
           fi 
           
           sudo chmod a+x "${{ github.workspace }}/${{ env.OUTPUT_UBUNTU_NAME }}"
