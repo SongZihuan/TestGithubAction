@@ -75,6 +75,9 @@ jobs:
           echo "BUG_PR=$BUG_LABEL" >> $GITHUB_OUTPUT
           echo "FEATURE_PR=$FETURE_LABEL" >> $GITHUB_OUTPUT
 
+          echo "$BUG_LABEL: $$BUG_LABEL"
+          echo "FEATURE_PR: %FEATURE_PR"
+
       - name: Get new tag and version
         id: get_tag_version
         run: |
@@ -124,6 +127,10 @@ jobs:
               echo "First Version is v0.1.0"
             fi
           fi
+          
+          echo "tag is $tag"
+          echo "version is $version"
+
     outputs:
       branch: ${{ steps.get_branch.outputs.branch }}
       tag: "${{ steps.get_tag_version.outputs.tag }}"
