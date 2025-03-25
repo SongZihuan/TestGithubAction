@@ -1,3 +1,20 @@
+huan-go-test (1.129.0) noble; urgency=medium
+
+  [ SongZihuan ]
+  * 更新工作流以优化版本发布流程
+  * 更新 GitHub Actions 中的步骤 ID
+  * 更新 Debian 打包配置以使用 Jammy 分发
+  * 更新版本号并添加发布到PPA的步骤
+  * 更新 GitHub Actions 工作流配置
+  * 更新 `gbp dch` 命令参数
+  * 修复版本号参数拼写错误
+  * 更新 `gbp dch` 命令以忽略分支
+  * 修复了一些拼写错误
+  * 更新版本号生成逻辑
+  * 修复SHA256文件命名不一致问题
+
+ -- 宋子桓🌈 <songzihuan@song-zh.com>  Tue, 25 Mar 2025 09:54:02 +0000
+
 huan-go-test (1.128.0) unstable; urgency=medium
 
   * Visit to
