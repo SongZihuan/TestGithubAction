@@ -596,7 +596,7 @@ jobs:
             ${{ github.workspace }}/${{ env.OUTPUT_REHL_NAME }}
             ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ needs.build-deb.outputs.architecture }}.deb
             ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ needs.build-deb.outputs.architecture }}.changes
-            ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ needs.build-debe.outputs.architecture }}.deb.sig
+            ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ needs.build-deb.outputs.architecture }}.deb.sig
             ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ needs.build-deb.outputs.architecture }}.deb.sha256
           preserve_order: true
           fail_on_unmatched_files: true
