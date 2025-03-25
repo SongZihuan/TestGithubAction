@@ -373,7 +373,7 @@ jobs:
         id: package
         run: |
           cat ${{ github.workspace }}/debian/rules
-          DEB_BUILD_OPTIONS="parallel=4 nocheck" dpkg-buildpackage -k"${{ secrets.GPG_KEY_ID }}"
+          DEB_BUILD_OPTIONS="parallel=4 nocheck" dpkg-buildpackage -b -k"${{ secrets.GPG_KEY_ID }}"
 
       - name: Sign package
         run: |
@@ -392,7 +392,6 @@ jobs:
 
       - name: Temporary copy file
         run: |
-          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}.dsc ${{ steps.create_temp.outputs.temp }}
           cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}.tar.gz ${{ steps.create_temp.outputs.temp }}
           cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb ${{ steps.create_temp.outputs.temp }}
           cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb.sig ${{ steps.create_temp.outputs.temp }}
@@ -405,7 +404,6 @@ jobs:
         with:
           name: ${{ env.PACKAGE_FILE_NAME_DEB }}
           path: |
-            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}.dsc
             ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}.tar.gz
             ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb
             ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb.sig
@@ -589,8 +587,8 @@ jobs:
         id: create_release
         uses: softprops/action-gh-release@v2
         with:
-          name: " 🚀🚀🚀新版本 ${{ steps.create_temp.outputs.temp }} 发布啦 👍"
-          tag_name: "${{ steps.create_temp.outputs.temp }}"
+          name: " 🚀🚀🚀新版本 ${{ needs.get-tag-version.outputs.tag }} 发布啦 👍"
+          tag_name: "${{ needs.get-tag-version.outputs.tag }}"
           body_path: ${{ github.workspace }}/release_${{ steps.create_temp.outputs.temp }}_info.md
           files: |
             ${{ github.workspace }}/release_${{ steps.create_temp.outputs.temp }}_info.md
