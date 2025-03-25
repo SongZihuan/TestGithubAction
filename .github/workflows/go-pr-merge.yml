@@ -663,7 +663,7 @@ jobs:
         run: ls -al ${{ github.workspace }}
 
       - name: Verify changes gpg
-        run: gpg --verify --batch --yes ${{ github.workspace }}/huan-go-test_1.109.0_amd64.changes
+        run: gpg --verify --batch --yes ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.create_release.outputs.version }}_${{ needs.build_deb.outputs.architecture }}.changes
 
       - name: Publish to ppa
         run: |
