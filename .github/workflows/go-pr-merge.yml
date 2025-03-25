@@ -166,11 +166,12 @@ jobs:
       tag: "${{ steps.get_tag_version.outputs.tag }}"
       version: "${{ steps.get_tag_version.outputs.version }}"
 
-  build_deb:
+  build-deb:
     runs-on: ubuntu-latest
     needs:
       - ready
       - get_version
+      - build-ubuntu
 
     env:
       FILE_SECTION: ".section"
@@ -386,7 +387,7 @@ jobs:
       - name: Get sha256
         run: |
           cd ${{ github.workspace }}/..
-          echo "$(sha256sum ./${{ env.PACKAGE_NAME }}_${{ needs.get_version.outputs.version }}_${{ needs.build_deb.outputs.architecture }}.deb | awk '{print $1}')" > ./${{ env.PACKAGE_NAME }}_${{ needs.get_version.outputs.version }}_${{ needs.build_deb.outputs.architecture }}.deb.sha256
+          echo "$(sha256sum ./${{ env.PACKAGE_NAME }}_${{ needs.get_version.outputs.version }}_${{ needs.build-deb.outputs.architecture }}.deb | awk '{print $1}')" > ./${{ env.PACKAGE_NAME }}_${{ needs.get_version.outputs.version }}_${{ needs.build-deb.outputs.architecture }}.deb.sha256
           cd -
 
       - name: List directory after package
@@ -489,11 +490,11 @@ jobs:
       maintainer: ${{ steps.before_package.outputs.maintainer }}
       describe: ${{ steps.before_package.outputs.describe }}
 
-  publish_deb_to_release:
+  publish-deb-to-release:
     runs-on: ubuntu-latest
     needs:
       - get_version
-      - build_deb
+      - build-deb
 
     permissions: write-all
 
@@ -600,20 +601,20 @@ jobs:
             ${{ github.workspace }}/${{ secrets.GPG_KEY_ID }}.gpg.key.id
             ${{ github.workspace }}/${{ env.OUTPUT_UBUNTU_NAME }}
             ${{ github.workspace }}/${{ env.OUTPUT_REHL_NAME }}
-            ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.get_version.outputs.version }}_${{ needs.build_deb.outputs.architecture }}.deb
-            ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.get_version.outputs.version }}_${{ needs.build_deb.outputs.architecture }}.changes
-            ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.get_version.outputs.version }}_${{ needs.build_deb.outputs.architecture }}.deb.sig
-            ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.get_version.outputs.version }}_${{ needs.build_deb.outputs.architecture }}.deb.sha256
+            ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.get_version.outputs.version }}_${{ needs.build-deb.outputs.architecture }}.deb
+            ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.get_version.outputs.version }}_${{ needs.build-deb.outputs.architecture }}.changes
+            ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.get_version.outputs.version }}_${{ needs.build-deb.outputs.architecture }}.deb.sig
+            ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.get_version.outputs.version }}_${{ needs.build-deb.outputs.architecture }}.deb.sha256
           preserve_order: true
           fail_on_unmatched_files: true
           generate_release_notes: true
           make_latest: "legacy"
 
-  publish_deb_to_ppa:
+  publish-deb-to-ppa:
     runs-on: ubuntu-latest
     needs:
       - get_version
-      - build_deb
+      - build-deb
 
     steps:
       - name: Install gpg and dput
@@ -643,9 +644,9 @@ jobs:
         run: ls -al ${{ github.workspace }}
 
       - name: Verify changes gpg
-        run: gpg --verify --batch --yes ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.get_version.outputs.version }}_${{ needs.build_deb.outputs.architecture }}.changes
+        run: gpg --verify --batch --yes ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.get_version.outputs.version }}_${{ needs.build-deb.outputs.architecture }}.changes
 
       - name: Publish to ppa
         run: |
           echo "PPA Address: ${{ vars.PPA_NAME }}"
-          dput ppa:${{ vars.PPA_NAME }} ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.get_version.outputs.version }}_${{ needs.build_deb.outputs.architecture }}.changes
+          dput ppa:${{ vars.PPA_NAME }} ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.get_version.outputs.version }}_${{ needs.build-deb.outputs.architecture }}.changes
