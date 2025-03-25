@@ -129,7 +129,7 @@ jobs:
           fi
           
       - name: tmp-step
-        rum: |
+        run: |
           echo "tag is ${{ steps.get_tag_version.outputs.tag }}"
           echo "version is ${{ steps.get_tag_version.outputs.version }}"
 
