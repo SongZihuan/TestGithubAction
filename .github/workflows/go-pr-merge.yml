@@ -110,7 +110,7 @@ jobs:
           path: ${{ github.workspace }}/${{ env.OUTPUT_REHL_NAME }}
           if-no-files-found: error
 
-  get_version:
+  get-tag-version:
     runs-on: ubuntu-latest
     needs:
       - ready
@@ -170,7 +170,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - ready
-      - get_version
+      - get-tag-version
       - build-ubuntu
 
     env:
@@ -316,8 +316,6 @@ jobs:
           mkdir -p "${{ github.workspace }}/debian"
           mkdir -p "${{ github.workspace }}/bin"
           
-          VERSION="$(echo "${{ needs.get_version.outputs.tag }}" | sed 's/^v//')"
-          
           echo "Source: ${{ env.PACKAGE_NAME }}" > ${{ github.workspace }}/debian/control
           echo "Maintainer: $(cat ${{ github.workspace }}/${{ env.FILE_MAINTAINER }})" >> ${{ github.workspace }}/debian/control
           echo "Section: $(cat ${{ github.workspace }}/${{ env.FILE_SECTION }})" >> ${{ github.workspace }}/debian/control
@@ -339,7 +337,7 @@ jobs:
             echo "Depends: $(cat ${{ github.workspace }}/${{ env.FILE_DEPENDS }})" >> ${{ github.workspace }}/debian/control
           fi        
           echo "Description: $(cat ${{ github.workspace }}/${{ env.FILE_DESCRIBE }})" >> ${{ github.workspace }}/debian/control
-          echo "Version: $VERSION" >> ${{ github.workspace }}/debian/control
+          echo "Version: ${{ needs.get-tag-version.outputs.version }}" >> ${{ github.workspace }}/debian/control
           
           cat ${{ github.workspace }}/debian/control
           
@@ -358,8 +356,7 @@ jobs:
           mv "${{ github.workspace }}/${{ env.OUTPUT_UBUNTU_NAME }}" "${{ github.workspace }}/bin/${{ env.PACKAGE_NAME }}"
           
           echo "bin/${{ env.PACKAGE_NAME }} $(cat ${{ env.FILE_BIN_PATH }})" > ${{ github.workspace }}/debian/${{ env.PACKAGE_NAME }}.install
-          
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
           echo "architecture=$(cat ${{ github.workspace }}/${{ env.FILE_ARCHITECTURE }})" >> $GITHUB_OUTPUT
           echo "maintainer=$(cat ${{ github.workspace }}/${{ env.FILE_MAINTAINER }})" >> $GITHUB_OUTPUT
           echo "describe=$(cat ${{ github.workspace }}/${{ env.FILE_DESCRIBE }})" >> $GITHUB_OUTPUT
@@ -381,13 +378,13 @@ jobs:
       - name: Sign package
         run: |
           cd ${{ github.workspace }}/..
-          gpg --batch --yes --passphrase-fd 0 --pinentry-mode loopback --detach-sign ./${{ env.PACKAGE_NAME }}_${{ steps.before_package.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb
+          gpg --batch --yes --passphrase-fd 0 --pinentry-mode loopback --detach-sign ./${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb
           cd -
 
       - name: Get sha256
         run: |
           cd ${{ github.workspace }}/..
-          echo "$(sha256sum ./${{ env.PACKAGE_NAME }}_${{ needs.get_version.outputs.version }}_${{ needs.build-deb.outputs.architecture }}.deb | awk '{print $1}')" > ./${{ env.PACKAGE_NAME }}_${{ needs.get_version.outputs.version }}_${{ needs.build-deb.outputs.architecture }}.deb.sha256
+          echo "$(sha256sum ./${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb | awk '{print $1}')" > ./${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ needs.build-ubuntu.outputs.architecture }}.deb.sha256
           cd -
 
       - name: List directory after package
@@ -395,26 +392,26 @@ jobs:
 
       - name: Temporary copy file
         run: |
-          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before_package.outputs.version }}.dsc ${{ steps.create_temp.outputs.temp }}
-          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before_package.outputs.version }}.tar.gz ${{ steps.create_temp.outputs.temp }}
-          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before_package.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb ${{ steps.create_temp.outputs.temp }}
-          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before_package.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb.sig ${{ steps.create_temp.outputs.temp }}
-          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before_package.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb.sha256 ${{ steps.create_temp.outputs.temp }}
-          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before_package.outputs.version }}_${{ steps.before_package.outputs.architecture }}.buildinfo ${{ steps.create_temp.outputs.temp }}
-          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before_package.outputs.version }}_${{ steps.before_package.outputs.architecture }}.changes ${{ steps.create_temp.outputs.temp }}
+          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}.dsc ${{ steps.create_temp.outputs.temp }}
+          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}.tar.gz ${{ steps.create_temp.outputs.temp }}
+          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb ${{ steps.create_temp.outputs.temp }}
+          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb.sig ${{ steps.create_temp.outputs.temp }}
+          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb.sha256 ${{ steps.create_temp.outputs.temp }}
+          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ steps.before_package.outputs.architecture }}.buildinfo ${{ steps.create_temp.outputs.temp }}
+          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ steps.before_package.outputs.architecture }}.changes ${{ steps.create_temp.outputs.temp }}
 
       - name: Upload deb artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.PACKAGE_FILE_NAME_DEB }}
           path: |
-            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ steps.before_package.outputs.version }}.dsc
-            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ steps.before_package.outputs.version }}.tar.gz
-            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ steps.before_package.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb
-            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ steps.before_package.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb.sig
-            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ steps.before_package.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb.sha256
-            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ steps.before_package.outputs.version }}_${{ steps.before_package.outputs.architecture }}.buildinfo
-            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ steps.before_package.outputs.version }}_${{ steps.before_package.outputs.architecture }}.changes
+            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}.dsc
+            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}.tar.gz
+            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb
+            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb.sig
+            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb.sha256
+            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ steps.before_package.outputs.architecture }}.buildinfo
+            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ steps.before_package.outputs.architecture }}.changes
           if-no-files-found: error
           retention-days: 90
 
@@ -448,7 +445,7 @@ jobs:
       - name: Push debian/changelog
         run: |
           git add ${{ github.workspace }}/debian/changelog
-          EDITOR="/bin/true" VISUAL="/bin/true" git commit -m "Update debian/changelog for ${{needs.get_version.outputs.tag}}"
+          EDITOR="/bin/true" VISUAL="/bin/true" git commit -m "Update debian/changelog for ${{ needs.get-tag-version.outputs.tag }}"
           git push -f origin HEAD:${{ env.CHANGE_LOG_DEB_BRANCH }}
 
       - name: Create or get pull request
@@ -493,7 +490,7 @@ jobs:
   publish-deb-to-release:
     runs-on: ubuntu-latest
     needs:
-      - get_version
+      - get-tag-version
       - build-deb
 
     permissions: write-all
@@ -585,14 +582,14 @@ jobs:
 
       - name: Push tag to github
         run: |
-          git tag ${{ needs.get_version.outputs.tag }}
-          git push origin "${{ needs.get_version.outputs.tag }}"
+          git tag ${{ needs.get-tag-version.outputs.tag }}
+          git push origin "${{ needs.get-tag-version.outputs.tag }}"
 
       - name: Create github release
         id: create_release
         uses: softprops/action-gh-release@v2
         with:
-          name: "👍 新版本 ${{ steps.create_temp.outputs.temp }} 发布啦 🚀🚀🚀"
+          name: " 🚀🚀🚀新版本 ${{ steps.create_temp.outputs.temp }} 发布啦 👍"
           tag_name: "${{ steps.create_temp.outputs.temp }}"
           body_path: ${{ github.workspace }}/release_${{ steps.create_temp.outputs.temp }}_info.md
           files: |
@@ -601,10 +598,10 @@ jobs:
             ${{ github.workspace }}/${{ secrets.GPG_KEY_ID }}.gpg.key.id
             ${{ github.workspace }}/${{ env.OUTPUT_UBUNTU_NAME }}
             ${{ github.workspace }}/${{ env.OUTPUT_REHL_NAME }}
-            ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.get_version.outputs.version }}_${{ needs.build-deb.outputs.architecture }}.deb
-            ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.get_version.outputs.version }}_${{ needs.build-deb.outputs.architecture }}.changes
-            ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.get_version.outputs.version }}_${{ needs.build-deb.outputs.architecture }}.deb.sig
-            ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.get_version.outputs.version }}_${{ needs.build-deb.outputs.architecture }}.deb.sha256
+            ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ needs.build-deb.outputs.architecture }}.deb
+            ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ needs.build-deb.outputs.architecture }}.changes
+            ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ needs.build-debe.outputs.architecture }}.deb.sig
+            ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ needs.build-deb.outputs.architecture }}.deb.sha256
           preserve_order: true
           fail_on_unmatched_files: true
           generate_release_notes: true
@@ -613,7 +610,7 @@ jobs:
   publish-deb-to-ppa:
     runs-on: ubuntu-latest
     needs:
-      - get_version
+      - get-tag-version
       - build-deb
 
     steps:
@@ -644,9 +641,9 @@ jobs:
         run: ls -al ${{ github.workspace }}
 
       - name: Verify changes gpg
-        run: gpg --verify --batch --yes ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.get_version.outputs.version }}_${{ needs.build-deb.outputs.architecture }}.changes
+        run: gpg --verify --batch --yes ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ needs.build-deb.outputs.architecture }}.changes
 
       - name: Publish to ppa
         run: |
           echo "PPA Address: ${{ vars.PPA_NAME }}"
-          dput ppa:${{ vars.PPA_NAME }} ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.get_version.outputs.version }}_${{ needs.build-deb.outputs.architecture }}.changes
+          dput ppa:${{ vars.PPA_NAME }} ${{ github.workspace }}/${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ needs.build-deb.outputs.architecture }}.changes
