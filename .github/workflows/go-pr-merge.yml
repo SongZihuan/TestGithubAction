@@ -49,7 +49,7 @@ jobs:
           fi
 
       - name: Check for specific label
-        id: check-label
+        id: check_label
         run: |
           BUG_LABEL="false"
           FETURE_LABEL="false"
@@ -86,9 +86,9 @@ jobs:
               echo "Warning: VERSION file was be found but hasn't been use."
           
               if [[ -n $(git tag --sort=-creatordate | grep -i '^v'  | head -1) ]]; then
-                if [[ ${{ steps.check-label.outputs.BUG_PR }} == "true" ]]; then
+                if [[ ${{ steps.check_label.outputs.BUG_PR }} == "true" ]]; then
                   tag=$(git tag --sort=-creatordate | grep -i '^v'  | head -1 | awk -F. '{print $1"."$2"."$3+1}')
-                elif [[ ${{ steps.check-label.outputs.FEATURE_PR }} == "true" ]]; then
+                elif [[ ${{ steps.check_label.outputs.FEATURE_PR }} == "true" ]]; then
                   tag=$(git tag --sort=-creatordate | grep -i '^v'  | head -1 | awk -F. '{print $1+1".0.0"}')
                 else
                   tag=$(git tag --sort=-creatordate | grep -i '^v'  | head -1 | awk -F. '{print $1"."$2+1".0"}')
@@ -111,9 +111,9 @@ jobs:
             echo "VERSION file not found."
       
             if [[ -n $(git tag --sort=-creatordate | grep -i '^v'  | head -1) ]]; then
-              if [[ ${{ steps.check-label.outputs.BUG_PR }} == "true" ]]; then
+              if [[ ${{ steps.check_label.outputs.BUG_PR }} == "true" ]]; then
                 tag=$(git tag --sort=-creatordate | grep -i '^v'  | head -1 | awk -F. '{print $1"."$2"."$3+1}')
-              elif [[ ${{ steps.check-label.outputs.FEATURE_PR }} == "true" ]]; then
+              elif [[ ${{ steps.check_label.outputs.FEATURE_PR }} == "true" ]]; then
                 tag=$(git tag --sort=-creatordate | grep -i '^v'  | head -1 | awk -F. '{print $1+1".0.0"}')
               else
                 tag=$(git tag --sort=-creatordate | grep -i '^v'  | head -1 | awk -F. '{print $1"."$2+1".0"}')
@@ -128,8 +128,8 @@ jobs:
             fi
           fi
           
-          echo "tag is $tag"
-          echo "version is $version"
+          echo "tag is ${{ steps.get_tag_version.outputs.tag }}"
+          echo "version is ${{ steps.get_tag_version.outputs.version }}"
 
     outputs:
       branch: ${{ steps.get_branch.outputs.branch }}
