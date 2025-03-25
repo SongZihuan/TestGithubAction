@@ -293,25 +293,6 @@ jobs:
       COMPAT_DEFAULT: "10"
 
     steps:
-      - name: Turn on universe
-        run: |
-          if grep -rq "universe" /etc/apt/sources.list /etc/apt/sources.list.d/; then
-              echo "'universe' repository is already enabled."
-          else
-              echo "'universe' repository is not enabled. Enabling it now..."
-
-              # 启用 universe 源
-              sudo add-apt-repository universe -y
-
-              # 检查命令是否成功
-              if [ $? -eq 0 ]; then
-                  echo "'universe' repository has been successfully enabled."
-              else
-                  echo "Failed to enable 'universe' repository. Exiting..."
-                  exit 1
-              fi
-          fi
-
       - name: Set up dependencies
         run: |
           sudo apt update -y
@@ -322,7 +303,10 @@ jobs:
           sudo apt install -y fakeroot
           sudo apt install -y gnupg
 
-      # 配置 GPG 环境
+      - name: Create and use a temporary directory
+        id: create_temp
+        run: echo "temp=$(mktemp -d)" >> $GITHUB_OUTPUT
+          
       - name: Configure GPG
         run: |
           mkdir ~/.gnupg
@@ -506,31 +490,26 @@ jobs:
 
       - name: Temporary copy file
         run: |
-          mkdir -p ${{ github.workspace }}/temp
-          
-          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.version }}.dsc ${{ github.workspace }}/temp
-          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.version }}_${{ steps.before-package.outputs.architecture }}.deb ${{ github.workspace }}/temp
-          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.version }}_${{ steps.before-package.outputs.architecture }}.deb.sig ${{ github.workspace }}/temp
-          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.version }}_${{ steps.before-package.outputs.architecture }}.buildinfo ${{ github.workspace }}/temp
-          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.version }}_${{ steps.before-package.outputs.architecture }}.changes ${{ github.workspace }}/temp
+          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.version }}.dsc ${{ steps.create_temp.outputs.temp }}
+          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.version }}.tar.gz ${{ steps.create_temp.outputs.temp }}
+          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.version }}_${{ steps.before-package.outputs.architecture }}.deb ${{ steps.create_temp.outputs.temp }}
+          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.version }}_${{ steps.before-package.outputs.architecture }}.deb.sig ${{ steps.create_temp.outputs.temp }}
+          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.version }}_${{ steps.before-package.outputs.architecture }}.buildinfo ${{ steps.create_temp.outputs.temp }}
+          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.version }}_${{ steps.before-package.outputs.architecture }}.changes ${{ steps.create_temp.outputs.temp }}
 
       - name: Upload deb artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.PACKAGE_FILE_NAME_DEB }}
           path: |
-            ${{ github.workspace }}/temp/${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.version }}.dsc
-            ${{ github.workspace }}/temp/${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.version }}_${{ steps.before-package.outputs.architecture }}.deb
-            ${{ github.workspace }}/temp/${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.version }}_${{ steps.before-package.outputs.architecture }}.deb.sig
-            ${{ github.workspace }}/temp/${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.version }}_${{ steps.before-package.outputs.architecture }}.buildinfo
-            ${{ github.workspace }}/temp/${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.version }}_${{ steps.before-package.outputs.architecture }}.changes
+            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.version }}.dsc
+            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.version }}.tar.gz
+            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.version }}_${{ steps.before-package.outputs.architecture }}.deb
+            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.version }}_${{ steps.before-package.outputs.architecture }}.deb.sig
+            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.version }}_${{ steps.before-package.outputs.architecture }}.buildinfo
+            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.version }}_${{ steps.before-package.outputs.architecture }}.changes
           if-no-files-found: error
           retention-days: 90
-
-      - name: Create and use a temporary directory
-        id: create_temp
-        run: |
-          echo "temp=$(mktemp -d)" >> $GITHUB_OUTPUT
 
       - name: Save changelog
         run: cp ${{ github.workspace }}/debian/changelog ${{ steps.create_temp.outputs.temp }}/changelog
