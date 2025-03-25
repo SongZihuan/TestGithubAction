@@ -1,3 +1,12 @@
+huan-go-test (1.132.0) all; urgency=medium
+
+  [ SongZihuan ]
+  * 更新 Debian 变更日志生成和 PPA 发布流程
+  * 更新工作流以优化标签和版本处理
+  * 更新版本文件检查逻辑
+
+ -- 宋子桓🌈 <songzihuan@song-zh.com>  Tue, 25 Mar 2025 12:21:24 +0000
+
 huan-go-test (1.131.0) noble; urgency=medium
 
   [ SongZihuan ]
