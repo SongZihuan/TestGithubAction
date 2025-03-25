@@ -653,6 +653,12 @@ jobs:
           echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --yes --import
           gpg --list-keys
 
+      - name: Change trust level
+        run: |
+          echo "${{ secrets.GPG_KEY_ID }}:6:" > ownertrust.txt
+          gpg --import-ownertrust < ownertrust.txt
+          gpg --list-keys
+
       - name: Download ubuntu artifact
         uses: actions/download-artifact@v4
         with:
