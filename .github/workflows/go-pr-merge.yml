@@ -78,7 +78,7 @@ jobs:
       - name: Get new tag and version
         id: get_tag_version
         run: |
-          if [ -f ${{ github.workspace }}/${{ env.VERSION_FILE }} ]; then
+          if [[ -f ${{ github.workspace }}/${{ env.VERSION_FILE }} ]]; then
             if git tag --list | grep -q "^$(cat ${{ env.VERSION_FILE }})$"; then
               echo "Warning: VERSION file was be found but hasn't been use."
           
@@ -90,6 +90,7 @@ jobs:
                 else
                   tag=$(git tag --sort=-creatordate | grep -i '^v'  | head -1 | awk -F. '{print $1"."$2+1".0"}')
                 fi
+          
                 echo "tag=$tag" >> $GITHUB_OUTPUT
                 echo "version=$(echo $tag | sed 's/^v//')" >> $GITHUB_OUTPUT
                 echo "Auto Version is $tag"
@@ -107,21 +108,20 @@ jobs:
             echo "VERSION file not found."
       
             if [[ -n $(git tag --sort=-creatordate | grep -i '^v'  | head -1) ]]; then
-              if [[ -n $(git tag --sort=-creatordate | grep -i '^v'  | head -1) ]]; then
-                if [[ ${{ steps.check-label.outputs.BUG_PR }} == "true" ]]; then
-                  tag=$(git tag --sort=-creatordate | grep -i '^v'  | head -1 | awk -F. '{print $1"."$2"."$3+1}')
-                elif [[ ${{ steps.check-label.outputs.FEATURE_PR }} == "true" ]]; then
-                  tag=$(git tag --sort=-creatordate | grep -i '^v'  | head -1 | awk -F. '{print $1+1".0.0"}')
-                else
-                  tag=$(git tag --sort=-creatordate | grep -i '^v'  | head -1 | awk -F. '{print $1"."$2+1".0"}')
-                fi
-                echo "tag=$tag" >> $GITHUB_OUTPUT
-                echo "version=$(echo $tag | sed 's/^v//')" >> $GITHUB_OUTPUT
-                echo "Auto Version is $tag"
+              if [[ ${{ steps.check-label.outputs.BUG_PR }} == "true" ]]; then
+                tag=$(git tag --sort=-creatordate | grep -i '^v'  | head -1 | awk -F. '{print $1"."$2"."$3+1}')
+              elif [[ ${{ steps.check-label.outputs.FEATURE_PR }} == "true" ]]; then
+                tag=$(git tag --sort=-creatordate | grep -i '^v'  | head -1 | awk -F. '{print $1+1".0.0"}')
+              else
+                tag=$(git tag --sort=-creatordate | grep -i '^v'  | head -1 | awk -F. '{print $1"."$2+1".0"}')
+              fi
+              echo "tag=$tag" >> $GITHUB_OUTPUT
+              echo "version=$(echo $tag | sed 's/^v//')" >> $GITHUB_OUTPUT
+              echo "Auto Version is $tag"
             else
-                echo "tag=v0.1.0" >> $GITHUB_OUTPUT
-                echo "version=0.1.0" >> $GITHUB_OUTPUT
-                echo "First Version is v0.1.0"
+              echo "tag=v0.1.0" >> $GITHUB_OUTPUT
+              echo "version=0.1.0" >> $GITHUB_OUTPUT
+              echo "First Version is v0.1.0"
             fi
           fi
     outputs:
