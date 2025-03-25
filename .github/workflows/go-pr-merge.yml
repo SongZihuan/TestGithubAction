@@ -384,7 +384,7 @@ jobs:
       - name: Get sha256
         run: |
           cd ${{ github.workspace }}/..
-          echo "$(sha256sum ./${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb | awk '{print $1}')" > ./${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ needs.build-ubuntu.outputs.architecture }}.deb.sha256
+          echo "$(sha256sum ./${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb | awk '{print $1}')" > ./${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb.sha256
           cd -
 
       - name: List directory after package
