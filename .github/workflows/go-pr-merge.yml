@@ -310,8 +310,7 @@ jobs:
           fi
 
       - name: Package into .deb
-        id: before-package
-
+        id: before_package
         run: |
           mkdir -p "${{ github.workspace }}/debian"
           mkdir -p "${{ github.workspace }}/bin"
@@ -381,11 +380,11 @@ jobs:
       - name: Sign package
         run: |
           cd ${{ github.workspace }}/..
-          gpg --batch --yes --passphrase-fd 0 --pinentry-mode loopback --detach-sign ./${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.version }}_${{ steps.before-package.outputs.architecture }}.deb
+          gpg --batch --yes --passphrase-fd 0 --pinentry-mode loopback --detach-sign ./${{ env.PACKAGE_NAME }}_${{ steps.before_package.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb
           cd -
 
       - name: Get sha256
-        runs: |
+        run: |
           cd ${{ github.workspace }}/..
           echo "$(sha256sum ./${{ env.PACKAGE_NAME }}_${{ needs.get_version.outputs.version }}_${{ needs.build_deb.outputs.architecture }}.deb | awk '{print $1}')" > ./${{ env.PACKAGE_NAME }}_${{ needs.get_version.outputs.version }}_${{ needs.build_deb.outputs.architecture }}.deb.sha256
           cd -
@@ -395,26 +394,26 @@ jobs:
 
       - name: Temporary copy file
         run: |
-          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.version }}.dsc ${{ steps.create_temp.outputs.temp }}
-          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.version }}.tar.gz ${{ steps.create_temp.outputs.temp }}
-          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.version }}_${{ steps.before-package.outputs.architecture }}.deb ${{ steps.create_temp.outputs.temp }}
-          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.version }}_${{ steps.before-package.outputs.architecture }}.deb.sig ${{ steps.create_temp.outputs.temp }}
-          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.version }}_${{ steps.before-package.outputs.architecture }}.deb.sha256 ${{ steps.create_temp.outputs.temp }}
-          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.version }}_${{ steps.before-package.outputs.architecture }}.buildinfo ${{ steps.create_temp.outputs.temp }}
-          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.version }}_${{ steps.before-package.outputs.architecture }}.changes ${{ steps.create_temp.outputs.temp }}
+          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before_package.outputs.version }}.dsc ${{ steps.create_temp.outputs.temp }}
+          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before_package.outputs.version }}.tar.gz ${{ steps.create_temp.outputs.temp }}
+          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before_package.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb ${{ steps.create_temp.outputs.temp }}
+          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before_package.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb.sig ${{ steps.create_temp.outputs.temp }}
+          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before_package.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb.sha256 ${{ steps.create_temp.outputs.temp }}
+          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before_package.outputs.version }}_${{ steps.before_package.outputs.architecture }}.buildinfo ${{ steps.create_temp.outputs.temp }}
+          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ steps.before_package.outputs.version }}_${{ steps.before_package.outputs.architecture }}.changes ${{ steps.create_temp.outputs.temp }}
 
       - name: Upload deb artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.PACKAGE_FILE_NAME_DEB }}
           path: |
-            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.version }}.dsc
-            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.version }}.tar.gz
-            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.version }}_${{ steps.before-package.outputs.architecture }}.deb
-            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.version }}_${{ steps.before-package.outputs.architecture }}.deb.sig
-            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.version }}_${{ steps.before-package.outputs.architecture }}.deb.sha256
-            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.version }}_${{ steps.before-package.outputs.architecture }}.buildinfo
-            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ steps.before-package.outputs.version }}_${{ steps.before-package.outputs.architecture }}.changes
+            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ steps.before_package.outputs.version }}.dsc
+            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ steps.before_package.outputs.version }}.tar.gz
+            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ steps.before_package.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb
+            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ steps.before_package.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb.sig
+            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ steps.before_package.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb.sha256
+            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ steps.before_package.outputs.version }}_${{ steps.before_package.outputs.architecture }}.buildinfo
+            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ steps.before_package.outputs.version }}_${{ steps.before_package.outputs.architecture }}.changes
           if-no-files-found: error
           retention-days: 90
 
@@ -486,9 +485,9 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
     outputs:
-      architecture: ${{ steps.before-package.outputs.architecture }}
-      maintainer: ${{ steps.before-package.outputs.maintainer }}
-      describe: ${{ steps.before-package.outputs.describe }}
+      architecture: ${{ steps.before_package.outputs.architecture }}
+      maintainer: ${{ steps.before_package.outputs.maintainer }}
+      describe: ${{ steps.before_package.outputs.describe }}
 
   publish_deb_to_release:
     runs-on: ubuntu-latest
