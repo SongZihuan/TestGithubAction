@@ -392,7 +392,6 @@ jobs:
 
       - name: Temporary copy file
         run: |
-          cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}.tar.gz ${{ steps.create_temp.outputs.temp }}
           cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb ${{ steps.create_temp.outputs.temp }}
           cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb.sig ${{ steps.create_temp.outputs.temp }}
           cp ${{ github.workspace }}/../${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb.sha256 ${{ steps.create_temp.outputs.temp }}
@@ -404,7 +403,6 @@ jobs:
         with:
           name: ${{ env.PACKAGE_FILE_NAME_DEB }}
           path: |
-            ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}.tar.gz
             ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb
             ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb.sig
             ${{ steps.create_temp.outputs.temp }}/${{ env.PACKAGE_NAME }}_${{ needs.get-tag-version.outputs.version }}_${{ steps.before_package.outputs.architecture }}.deb.sha256
