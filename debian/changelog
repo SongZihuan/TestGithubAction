@@ -1,6 +1,21 @@
 huan-go-test (1.132.0) all; urgency=medium
 
   [ SongZihuan ]
+  * 更新工作流以依赖ready任务
+  * 更新 GitHub Actions 工作流脚本
+  * 更新标签检查步骤的ID
+  * 更新标签检查步骤的ID
+  * 修复拼写错误
+  * 修正版本号提取逻辑
+  * 优化版本号生成逻辑
+  * 检查并更新版本标签逻辑
+  * 更新版本号生成逻辑
+
+ -- 宋子桓🌈 <songzihuan@song-zh.com>  Tue, 25 Mar 2025 13:30:28 +0000
+
+huan-go-test (1.132.0) all; urgency=medium
+
+  [ SongZihuan ]
   * 更新 Debian 变更日志生成和 PPA 发布流程
   * 更新工作流以优化标签和版本处理
   * 更新版本文件检查逻辑
