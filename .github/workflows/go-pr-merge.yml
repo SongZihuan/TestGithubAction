@@ -104,7 +104,7 @@ jobs:
               fi
             else
               echo "tag=$(cat ${{ env.VERSION_FILE }})" >> $GITHUB_OUTPUT
-              echo "version=$(echo ${{ env.VERSION_FILE }} | sed 's/^v//')" >> $GITHUB_OUTPUT
+              echo "version=$(cat ${{ env.VERSION_FILE }} | sed 's/^v//')" >> $GITHUB_OUTPUT
               echo "File Version is $(cat ${{ env.VERSION_FILE }})"
             fi
           else
