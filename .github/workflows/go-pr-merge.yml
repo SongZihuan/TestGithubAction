@@ -84,31 +84,23 @@ jobs:
           if [[ -f ${{ github.workspace }}/${{ env.VERSION_FILE }} ]]; then
             if git tag --list | grep -q "^$(cat ${{ env.VERSION_FILE }})$"; then
               echo "Warning: VERSION file was be found but hasn't been use."
-          
-              if [[ -n $(git tag --sort=-creatordate | grep -i '^v'  | head -1) ]]; then
-                latest_tag = $(git tag --sort=-creatordate | grep -i '^v'  | head -1)
-                lastest_version = "${latest_tag#v}"
-          
-                if [[ ${{ steps.check_label.outputs.BUG_PR }} == "true" ]]; then
-                  tag=$(echo $lastest_version | awk -F. '{print $1"."$2"."$3+1}')
-                elif [[ ${{ steps.check_label.outputs.FEATURE_PR }} == "true" ]]; then
-                  tag=$(echo $lastest_version | awk -F. '{print $1+1".0.0"}')
-                else
-                  tag=$(echo $lastest_version | awk -F. '{print $1"."$2+1".0"}')
-                fi
-          
-                echo "tag=v$latest_tag" >> $GITHUB_OUTPUT
-                echo "version=$lastest_version" >> $GITHUB_OUTPUT
-                echo "Auto Version is $lastest_version"
+        
+              if [[ ${{ steps.check_label.outputs.BUG_PR }} == "true" ]]; then
+                version="$(echo $lastest_version | awk -F. '{print $1"."$2"."$3+1}')"
+              elif [[ ${{ steps.check_label.outputs.FEATURE_PR }} == "true" ]]; then
+                version="$(echo $lastest_version | awk -F. '{print $1+1".0.0"}')"
               else
-                echo "tag=v0.1.0" >> $GITHUB_OUTPUT
-                echo "version=0.1.0" >> $GITHUB_OUTPUT
-                echo "First Version is v0.1.0"
+                version="$(echo $lastest_version | awk -F. '{print $1"."$2+1".0"}')"
               fi
+        
+              echo "tag=v$version" >> $GITHUB_OUTPUT
+              echo "version=$version" >> $GITHUB_OUTPUT
+              echo "Auto Version is $version"
             else
-              echo "tag=$(cat ${{ env.VERSION_FILE }})" >> $GITHUB_OUTPUT
-              echo "version=$(cat ${{ env.VERSION_FILE }} | sed 's/^v//')" >> $GITHUB_OUTPUT
-              echo "File Version is $(cat ${{ env.VERSION_FILE }})"
+              version="$(cat ${{ env.VERSION_FILE }} | sed 's/^v//')"
+              echo "tag=v$version" >> $GITHUB_OUTPUT
+              echo "version=$version" >> $GITHUB_OUTPUT
+              echo "File Version is $version"
             fi
           else
             echo "VERSION file not found."
@@ -118,16 +110,16 @@ jobs:
               lastest_version = "${latest_tag#v}"
         
               if [[ ${{ steps.check_label.outputs.BUG_PR }} == "true" ]]; then
-                tag=$(echo $lastest_version | awk -F. '{print $1"."$2"."$3+1}')
+                version="$(echo $lastest_version | awk -F. '{print $1"."$2"."$3+1}')"
               elif [[ ${{ steps.check_label.outputs.FEATURE_PR }} == "true" ]]; then
-                tag=$(echo $lastest_version | awk -F. '{print $1+1".0.0"}')
+                version="$(echo $lastest_version | awk -F. '{print $1+1".0.0"}')"
               else
-                tag=$(echo $lastest_version | awk -F. '{print $1"."$2+1".0"}')
+                version="$(echo $lastest_version | awk -F. '{print $1"."$2+1".0"}')"
               fi
         
-              echo "tag=v$latest_tag" >> $GITHUB_OUTPUT
-              echo "version=$lastest_version" >> $GITHUB_OUTPUT
-              echo "Auto Version is $lastest_version"
+              echo "tag=v$version" >> $GITHUB_OUTPUT
+              echo "version=$version" >> $GITHUB_OUTPUT
+              echo "Auto Version is $version"
             else
               echo "tag=v0.1.0" >> $GITHUB_OUTPUT
               echo "version=0.1.0" >> $GITHUB_OUTPUT
@@ -459,7 +451,7 @@ jobs:
         run: cp ${{ github.workspace }}/debian/changelog ${{ steps.create_temp.outputs.temp }}/changelog
 
       - name: Save version
-        run: echo ${{ needs.ready.outputs.version }} > ${{ steps.create_temp.outputs.temp }}/VERSION
+        run: echo ${{ needs.ready.outputs.tag }} > ${{ steps.create_temp.outputs.temp }}/VERSION
 
       - name: Git set config
         run: |
